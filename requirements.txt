@@ -1,4 +1,9 @@
 torch
 transformers
-pandas
+sentence-transformers
+nltk
 scikit-learn
+
+pandas
+numpy
+tqdm
