@@ -11,6 +11,10 @@
 
 We adhere to the GitFlow branching model.
 
+### Workflow Diagram
+  The following diagram visualizes the complete GitFlow process, including the flow of all branch types.
+  ![FED Watcher GitFlow Workflow](./docs/images/gitflow-workflow.png)
+
 ### Core Branches
 - **`main`**: The production branch. Contains tagged, release-ready code.
 - **`develop`**: The main development integration branch.
