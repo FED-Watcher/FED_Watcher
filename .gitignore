@@ -10,6 +10,7 @@
 # --- Data & Models ---
 # Ignore all data directories. Data does not belong in Git.
 /data/
+/sentiment_results/
 
 # Ignore common data file extensions, regardless of location.
 *.csv
