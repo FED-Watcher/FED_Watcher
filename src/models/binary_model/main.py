@@ -24,9 +24,9 @@ def main():
     print("="*60 + "\n")
     
     # Configuration
-    DATA_PATH = 'MasterDataset_Enriched.csv'
-    MODEL_PATH = 'models/xgboost_binary_classifier.pkl'
-    METRICS_PATH = 'logs/metrics.json'
+    DATA_PATH = r'C:\Users\benya\Desktop\Githubrepo\FED_Watcher\src\models\binary_model\MasterDataset_Enriched.csv'
+    MODEL_PATH = r'C:\Users\benya\Desktop\Githubrepo\FED_Watcher\src\models\binary_model\models\xgboost_binary_classifier.pkl'
+    METRICS_PATH = r'C:\Users\benya\Desktop\Githubrepo\FED_Watcher\src\models\binary_model\logs\metrics.json'
     
     # ===== STEP 1: DATA PREPARATION =====
     X_train, X_test, y_train, y_test, feature_cols = prepare_pipeline(
@@ -55,10 +55,10 @@ def main():
     print(f"Model saved to: {MODEL_PATH}")
     print(f"Metrics saved to: {METRICS_PATH}")
     print("\nSprint Acceptance Criteria Met:")
-    print("  ✓ Binary target variable created from market returns")
-    print("  ✓ Proper chronological train/test split")
-    print("  ✓ Model trained and saved")
-    print("  ✓ Key ML metrics logged (Accuracy, F1-Score)")
+    print("  [OK] Binary target variable created from market returns")
+    print("  [OK] Proper chronological train/test split")
+    print("  [OK] Model trained and saved")
+    print("  [OK] Key ML metrics logged (Accuracy, F1-Score)")
     print("="*60 + "\n")
 
 

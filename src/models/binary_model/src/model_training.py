@@ -27,8 +27,8 @@ def train_xgboost_model(X_train, y_train, params=None):
     if params is None:
         params = {
             'objective': 'binary:logistic',
-            'max_depth': 3,
-            'learning_rate': 0.1,
+            'max_depth': 6,
+            'learning_rate': 0.05,
             'n_estimators': 100,
             'random_state': 42,
             'eval_metric': 'logloss'
@@ -43,7 +43,7 @@ def train_xgboost_model(X_train, y_train, params=None):
     model = xgb.XGBClassifier(**params)
     model.fit(X_train, y_train)
     
-    print("✓ Model training complete")
+    print("Model training complete")
     
     return model
 
@@ -102,16 +102,18 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
     # Confusion matrix
     print("\nCONFUSION MATRIX (Test Set):")
     cm = confusion_matrix(y_test, y_test_pred)
-    print(f"              Predicted")
-    print(f"              Down  Up")
+    print("              Predicted")
+    print("              Down  Up")
     print(f"Actual Down    {cm[0][0]:3d}  {cm[0][1]:3d}")
     print(f"       Up      {cm[1][0]:3d}  {cm[1][1]:3d}")
     
     # Classification report
     print("\nCLASSIFICATION REPORT (Test Set):")
-    print(classification_report(y_test, y_test_pred, 
-                                target_names=['Down', 'Up'],
-                                zero_division=0))
+    print(classification_report(
+        y_test, y_test_pred,
+        target_names=['Down', 'Up'],
+        zero_division=0
+    ))
     
     return metrics
 
@@ -127,7 +129,7 @@ def save_model(model, filepath):
     with open(filepath, 'wb') as f:
         pickle.dump(model, f)
     
-    print(f"\n✓ Model saved to: {filepath}")
+    print(f"\nModel saved to: {filepath}")
 
 
 def save_metrics(metrics, filepath):
@@ -138,13 +140,12 @@ def save_metrics(metrics, filepath):
         metrics (dict): Dictionary of metrics
         filepath (str): Path to save the metrics
     """
-    # Add timestamp
     metrics['timestamp'] = datetime.now().isoformat()
     
     with open(filepath, 'w') as f:
         json.dump(metrics, f, indent=4)
     
-    print(f"✓ Metrics saved to: {filepath}")
+    print(f"Metrics saved to: {filepath}")
 
 
 def load_model(filepath):
@@ -160,7 +161,7 @@ def load_model(filepath):
     with open(filepath, 'rb') as f:
         model = pickle.load(f)
     
-    print(f"✓ Model loaded from: {filepath}")
+    print(f"Model loaded from: {filepath}")
     return model
 
 

@@ -23,7 +23,7 @@ def load_data(filepath):
     df = df.sort_values('Date')
     df = df.set_index('Date')
     
-    print(f"✓ Loaded data: {len(df)} rows, {len(df.columns)} columns")
+    print(f"Loaded data: {len(df)} rows, {len(df.columns)} columns")
     print(f"  Date range: {df.index.min()} to {df.index.max()}")
     
     return df
@@ -48,14 +48,14 @@ def create_binary_target(df, horizon=1):
     # Create binary target: 1 if positive return, 0 otherwise
     df['target'] = (df['return'] > 0).astype(int)
     
-    # Remove rows where we can't calculate target (last 'horizon' rows)
+    # Remove rows where we can't calculate target
     df_clean = df[:-horizon].copy()
     
-    print(f"\n✓ Created binary target variable:")
+    print("\nCreated binary target variable:")
     print(f"  Horizon: {horizon} day(s)")
     print(f"  Target distribution:")
     print(f"    Up (1): {df_clean['target'].sum()} ({df_clean['target'].mean()*100:.1f}%)")
-    print(f"    Down (0): {(df_clean['target']==0).sum()} ({(1-df_clean['target'].mean())*100:.1f}%)")
+    print(f"    Down (0): {(df_clean['target']==0).sum()} ({(1 - df_clean['target'].mean())*100:.1f}%)")
     
     return df_clean
 
@@ -71,17 +71,15 @@ def select_features(df):
     Returns:
         tuple: (feature_columns list, df with selected columns)
     """
-    # Features to exclude (target-related and helper columns)
+    # Features to exclude
     exclude_cols = ['future_close', 'return', 'target']
     
-    # Also exclude OHLC except Close (to avoid multicollinearity)
-    # Keep Close as it's the base for our predictions
+    # Exclude OHLC except Close
     exclude_cols.extend(['Open', 'High', 'Low'])
     
-    # Select all other columns as features
     feature_cols = [col for col in df.columns if col not in exclude_cols]
     
-    print(f"\n✓ Selected features: {len(feature_cols)}")
+    print(f"\nSelected features: {len(feature_cols)}")
     print(f"  Features: {feature_cols}")
     
     return feature_cols, df
@@ -89,8 +87,7 @@ def select_features(df):
 
 def prepare_announcement_data(df):
     """
-    Filter data to only include Fed announcement days and next day.
-    This focuses the model on post-announcement market reactions.
+    Filter data to only include Fed announcement days.
     
     Args:
         df (pd.DataFrame): Input dataframe with Announcement column
@@ -98,10 +95,9 @@ def prepare_announcement_data(df):
     Returns:
         pd.DataFrame: Filtered dataframe
     """
-    # Keep only rows where Announcement = 1
     announcement_data = df[df['Announcement'] == 1].copy()
     
-    print(f"\n✓ Filtered to announcement days:")
+    print("\nFiltered to announcement days:")
     print(f"  Total announcement days: {len(announcement_data)}")
     print(f"  Date range: {announcement_data.index.min()} to {announcement_data.index.max()}")
     
@@ -110,23 +106,19 @@ def prepare_announcement_data(df):
 
 def split_data(df, feature_cols, test_size=0.2, random_state=42):
     """
-    Split data into train and test sets chronologically.
-    Uses chronological split to prevent data leakage.
+    Split data chronologically into train and test sets.
     
     Args:
         df (pd.DataFrame): Input dataframe
         feature_cols (list): List of feature column names
         test_size (float): Proportion of data for testing
-        random_state (int): Random seed for reproducibility
         
     Returns:
         tuple: (X_train, X_test, y_train, y_test)
     """
-    # Prepare features and target
     X = df[feature_cols]
     y = df['target']
     
-    # Chronological split (don't shuffle time series data)
     split_idx = int(len(df) * (1 - test_size))
     
     X_train = X.iloc[:split_idx]
@@ -134,7 +126,7 @@ def split_data(df, feature_cols, test_size=0.2, random_state=42):
     y_train = y.iloc[:split_idx]
     y_test = y.iloc[split_idx:]
     
-    print(f"\n✓ Split data chronologically:")
+    print("\nSplit data chronologically:")
     print(f"  Train set: {len(X_train)} samples ({len(X_train)/len(df)*100:.1f}%)")
     print(f"    Date range: {X_train.index.min()} to {X_train.index.max()}")
     print(f"    Target distribution: Up={y_train.sum()} ({y_train.mean()*100:.1f}%), Down={len(y_train)-y_train.sum()}")
@@ -162,20 +154,14 @@ def prepare_pipeline(filepath, use_announcement_only=True, horizon=1, test_size=
     print("DATA PREPARATION PIPELINE")
     print("="*60)
     
-    # Step 1: Load data
     df = load_data(filepath)
-    
-    # Step 2: Create binary target
     df = create_binary_target(df, horizon=horizon)
     
-    # Step 3: Filter to announcement days (optional)
     if use_announcement_only:
         df = prepare_announcement_data(df)
     
-    # Step 4: Select features
     feature_cols, df = select_features(df)
     
-    # Step 5: Split data
     X_train, X_test, y_train, y_test = split_data(df, feature_cols, test_size=test_size)
     
     print("\n" + "="*60)
