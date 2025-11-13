@@ -262,15 +262,16 @@ print("  Feature Scaling: StandardScaler applied")
 print("  Class Weighting: Balanced")
 print()
 
-# Enhanced model with more capacity due to more features
+# FEDW-102: Optimized hyperparameters to reduce training time
+#Faster iterations enable quicker experimentation during development
 model_params = {
-    'n_estimators': 150,  # Increased from 100
-    'max_depth': 5,       # Increased from 4
-    'learning_rate': 0.08,
-    'subsample': 0.8,
+    'n_estimators': 100,      # Reduced for faster training
+    'max_depth': 4,           # Shallower trees train faster
+    'learning_rate': 0.1,     # Faster convergence
+    'subsample': 0.75,        # Less data per tree
     'max_features': 'sqrt',
     'random_state': RANDOM_STATE,
-    'verbose': 0
+    'verbose': 1              # Show progress during training
 }
 
 print("Hyperparameters (Enhanced):")

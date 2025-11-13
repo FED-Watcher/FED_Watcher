@@ -8,3 +8,5 @@ pandas
 numpy
 tqdm
 yfinance
+seaborn
+matplotlib
