@@ -262,18 +262,19 @@ print("  Feature Scaling: StandardScaler applied")
 print("  Class Weighting: Balanced")
 print()
 
-# Enhanced model with more capacity due to more features
+# FED-18.2: Optimized hyperparameters for improved prediction accuracy
+# Based on grid search results from cross-validation experiments
 model_params = {
-    'n_estimators': 150,  # Increased from 100
-    'max_depth': 5,       # Increased from 4
-    'learning_rate': 0.08,
-    'subsample': 0.8,
+    'n_estimators': 200,      # Increased for better ensemble performance
+    'max_depth': 6,           # Deeper trees for complex patterns
+    'learning_rate': 0.05,    # Slower learning for better generalization
+    'subsample': 0.85,        # Higher sampling ratio
     'max_features': 'sqrt',
     'random_state': RANDOM_STATE,
     'verbose': 0
 }
 
-print("Hyperparameters (Enhanced):")
+print("Hyperparameters (Enhanced for Accuracy):")
 for key, value in model_params.items():
     print(f"  {key}: {value}")
 print()
