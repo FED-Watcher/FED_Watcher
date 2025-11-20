@@ -11,6 +11,7 @@ from src.model_training import (
     save_metrics,
     get_feature_importance
 )
+from sklearn.model_selection import train_test_split
 
 
 def main():
@@ -33,9 +34,9 @@ def main():
         filepath=DATA_PATH,
         use_announcement_only=True,  # Focus on announcement days only
         horizon=1,                    # Predict 24h ahead (1 day)
-        test_size=0.3               # 80/20 train/test split
+        test_size=0.2              # 80/20 train/test split
     )
-    
+
     # ===== STEP 2: MODEL TRAINING =====
     model = train_xgboost_model(X_train, y_train)
     
@@ -44,7 +45,7 @@ def main():
     
     # ===== STEP 4: FEATURE IMPORTANCE =====
     importance_df = get_feature_importance(model, feature_cols)
-    
+
     # ===== STEP 5: SAVE RESULTS =====
     save_model(model, MODEL_PATH)
     save_metrics(metrics, METRICS_PATH)
