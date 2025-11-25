@@ -1,4 +1,5 @@
 """Sample integration tests."""
+
 import pytest
 
 

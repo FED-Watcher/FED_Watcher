@@ -1,4 +1,5 @@
 """Sample unit tests for FED-Watcher."""
+
 import pytest
 
 
@@ -12,7 +13,7 @@ def test_imports():
     import pandas as pd
     import numpy as np
     import sklearn
-    
+
     assert pd.__version__ is not None
     assert np.__version__ is not None
     assert sklearn.__version__ is not None
