@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fed-watcher"
+version = "1.0.0"
+description = "Federal Reserve sentiment analysis for S&P 500 prediction"
+readme = "README.md"
+authors = [
+    {name = "FED-Watcher Team", email = "team@fedwatcher.example.com"}
+]
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=1.5.0",
+    "numpy>=1.23.0",
+    "scikit-learn>=1.2.0",
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "pylint>=2.17.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
