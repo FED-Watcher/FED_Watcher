@@ -1,4 +1,5 @@
 """Unit tests for FED-Watcher source code."""
+
 import pytest
 from src.utils import hello, add_numbers, validate_data
 from src.data_processor import DataProcessor
@@ -30,10 +31,10 @@ def test_validate_data_with_invalid_input():
     """Test validate_data raises ValueError for empty input."""
     with pytest.raises(ValueError, match="Data cannot be empty"):
         validate_data(None)
-    
+
     with pytest.raises(ValueError, match="Data cannot be empty"):
         validate_data("")
-    
+
     with pytest.raises(ValueError, match="Data cannot be empty"):
         validate_data([])
 
@@ -48,11 +49,11 @@ def test_data_processor_initialization():
 def test_data_processor_add_item():
     """Test adding items to DataProcessor."""
     processor = DataProcessor()
-    
+
     processor.add_item("item1")
     assert processor.get_count() == 1
     assert "item1" in processor.data
-    
+
     processor.add_item("item2")
     assert processor.get_count() == 2
     assert "item2" in processor.data
@@ -64,7 +65,7 @@ def test_data_processor_clear():
     processor.add_item("test1")
     processor.add_item("test2")
     assert processor.get_count() == 2
-    
+
     processor.clear()
     assert processor.get_count() == 0
     assert processor.data == []
@@ -76,16 +77,16 @@ def test_critical_path():
     # Test utils
     greeting = hello()
     assert "FED-Watcher" in greeting
-    
+
     # Test math
     result = add_numbers(5, 10)
     assert result == 15
-    
+
     # Test data processor
     processor = DataProcessor()
     processor.add_item("test")
     assert len(processor.data) == 1
-    
+
     # Test validation
     assert validate_data(processor.data) is True
 
@@ -105,7 +106,7 @@ def test_basic_functionality():
     processor.add_item(1)
     processor.add_item(2)
     processor.add_item(3)
-    
+
     count = processor.get_count()
     assert count == 3
     assert sum(processor.data) == 6
