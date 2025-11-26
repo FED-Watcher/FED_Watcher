@@ -185,11 +185,7 @@ jobs:
         
     - name: Run integration tests
       run: |
-        pytest tests/integration/ \
-          -v \
-          --cov=src \
-          --cov-report=xml \
-          --junitxml=junit/integration-results.xml
+        pytest tests/integration/ -v --junitxml=junit/integration-results.xml
       env:
         PYTHONPATH: ${{ github.workspace }}/src
         
@@ -228,9 +224,7 @@ jobs:
         
     - name: Run cross-validation tests
       run: |
-        pytest tests/unit/test_cross_validation.py \
-          -v \
-          --junitxml=junit/cv-results.xml
+        pytest tests/unit/test_cross_validation.py -v --junitxml=junit/cv-results.xml
       env:
         PYTHONPATH: ${{ github.workspace }}/src
         
