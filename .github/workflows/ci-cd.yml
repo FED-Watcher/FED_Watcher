@@ -255,9 +255,7 @@ jobs:
         
     - name: Run acceptance tests
       run: |
-        pytest tests/acceptance/ \
-          -v \
-          --junitxml=junit/acceptance-results.xml
+        pytest tests/acceptance/ -v --no-cov --junitxml=junit/acceptance-results.xml
       env:
         PYTHONPATH: ${{ github.workspace }}/src
         
