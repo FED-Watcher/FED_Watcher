@@ -229,7 +229,7 @@ jobs:
     - name: Verify 80/20 split requirement
       run: |
         echo "✅ Verifying train/test split acceptance criteria..."
-        pytest tests/acceptance/test_data_split.py -v
+        pytest tests/acceptance/test_data_split.py -v --no-cov
 
   # Stage 6: Acceptance Tests
   acceptance-tests:
