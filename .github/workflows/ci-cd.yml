@@ -184,7 +184,7 @@ jobs:
         
         
     - name: Run integration tests
-      run: pytest tests/integration/ -v --no-cov --junitxml=junit/integration-results.xml
+      run: pytest tests/integration/ -v -p no:cov --junitxml=junit/integration-results.xml
       env:
         PYTHONPATH: ${{ github.workspace }}/src
         
@@ -222,14 +222,14 @@ jobs:
         pip install -r requirements-dev.txt
         
     - name: Run cross-validation tests
-      run: pytest tests/unit/test_cross_validation.py -v --no-cov --junitxml=junit/cv-results.xml
+      run: pytest tests/unit/test_cross_validation.py -v -p no:cov --junitxml=junit/cv-results.xml
       env:
         PYTHONPATH: ${{ github.workspace }}/src
         
     - name: Verify 80/20 split requirement
       run: |
         echo "✅ Verifying train/test split acceptance criteria..."
-        pytest tests/acceptance/test_data_split.py -v --no-cov
+        pytest tests/acceptance/test_data_split.py -v -p no:cov
 
   # Stage 6: Acceptance Tests
   acceptance-tests:
@@ -255,7 +255,7 @@ jobs:
         
     - name: Run acceptance tests
       run: |
-        pytest tests/acceptance/ -v --no-cov --junitxml=junit/acceptance-results.xml
+        pytest tests/acceptance/ -v -p no:cov --junitxml=junit/acceptance-results.xml
       env:
         PYTHONPATH: ${{ github.workspace }}/src
         
