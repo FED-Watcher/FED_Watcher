@@ -10,7 +10,7 @@ def extract_meeting_date(filename):
     Expected format: FOMCpresconf20200916.txt
     Returns: 2020-09-16
     """
-    match = re.search(r'(\d{8})', filename)
+    match = re.search(r"(\d{8})", filename)
     if match:
         date_str = match.group(1)
         year = date_str[:4]
@@ -25,41 +25,41 @@ def clean_text(text):
     Clean text by removing XML tags, fixing encoding issues, and normalizing.
     """
     # Remove XML-style tags
-    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r"<[^>]+>", "", text)
 
     # Fix common encoding issues - comprehensive list
     encoding_fixes = {
-        'â€"': '—',
-        'â€"': '-',
-        'â€œ': '"',
-        'â€\u009d': '"',
-        'â€': '"',
-        'â€™': "'",
-        'â€˜': "'",
-        'Â½': '1/2',
-        'Â¼': '1/4',
-        'Â¾': '3/4',
-        'â€¦': '...',
-        'Ã¶': 'o',
-        'Ã¤': 'a',
-        'Ã¼': 'u',
-        'Ã©': 'e',
-        'Ã¨': 'e',
-        'Ã ': 'a',
-        'Ã§': 'c',
-        'Ã±': 'n',
-        'Ãº': 'u',
-        'Ã³': 'o',
-        'Ã­': 'i',
-        'Ã¡': 'a',
-        'Ãƒ': 'A',
-        'Ã': '',
-        'â': '',
-        'Â': '',
-        '€': '',
-        'Å': '',
-        'Ä': '',
-        'Ö': '',
+        'â€"': "—",
+        'â€"': "-",
+        "â€œ": '"',
+        "â€\u009d": '"',
+        "â€": '"',
+        "â€™": "'",
+        "â€˜": "'",
+        "Â½": "1/2",
+        "Â¼": "1/4",
+        "Â¾": "3/4",
+        "â€¦": "...",
+        "Ã¶": "o",
+        "Ã¤": "a",
+        "Ã¼": "u",
+        "Ã©": "e",
+        "Ã¨": "e",
+        "Ã ": "a",
+        "Ã§": "c",
+        "Ã±": "n",
+        "Ãº": "u",
+        "Ã³": "o",
+        "Ã­": "i",
+        "Ã¡": "a",
+        "Ãƒ": "A",
+        "Ã": "",
+        "â": "",
+        "Â": "",
+        "€": "",
+        "Å": "",
+        "Ä": "",
+        "Ö": "",
     }
 
     for wrong, right in encoding_fixes.items():
@@ -67,25 +67,25 @@ def clean_text(text):
 
     # Remove any remaining non-ASCII characters that look like artifacts
     # Keep only: letters, numbers, common punctuation, and spaces
-    text = re.sub(r'[^\w\s\-\'".,;:!?()\[\]{}/$%&]', '', text)
+    text = re.sub(r'[^\w\s\-\'".,;:!?()\[\]{}/$%&]', "", text)
 
     # Fix multiple punctuation marks
-    text = re.sub(r'\.{2,}', '...', text)  # Multiple periods to ellipsis
-    text = re.sub(r'\s*-\s*-\s*', ' - ', text)  # Fix double dashes
+    text = re.sub(r"\.{2,}", "...", text)  # Multiple periods to ellipsis
+    text = re.sub(r"\s*-\s*-\s*", " - ", text)  # Fix double dashes
 
     # Normalize whitespace
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
     text = text.strip()
 
     # Convert to lowercase
     text = text.lower()
 
     # Fix common spacing issues around punctuation
-    text = re.sub(r'\s+([.,;:!?])', r'\1', text)  # Remove space before punctuation
-    text = re.sub(r'([.,;:!?])([^\s])', r'\1 \2', text)  # Add space after punctuation
+    text = re.sub(r"\s+([.,;:!?])", r"\1", text)  # Remove space before punctuation
+    text = re.sub(r"([.,;:!?])([^\s])", r"\1 \2", text)  # Add space after punctuation
 
     # Remove any remaining double spaces
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\s+", " ", text)
     text = text.strip()
 
     return text
@@ -97,12 +97,12 @@ def extract_powell_speeches(file_path):
     Returns a list of dictionaries with meeting_date and paragraph_text.
     """
     # Read the file with error handling for different encodings
-    encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+    encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
     content = None
 
     for encoding in encodings:
         try:
-            with open(file_path, 'r', encoding=encoding) as f:
+            with open(file_path, "r", encoding=encoding) as f:
                 content = f.read()
             break
         except UnicodeDecodeError:
@@ -118,7 +118,7 @@ def extract_powell_speeches(file_path):
 
     # Split content by <NAME> tags to identify speakers
     # Pattern: <NAME>SPEAKER NAME</NAME>. Speech text...
-    name_pattern = r'<NAME>(.*?)</NAME>\.\s*(.*?)(?=<NAME>|$)'
+    name_pattern = r"<NAME>(.*?)</NAME>\.\s*(.*?)(?=<NAME>|$)"
     matches = re.finditer(name_pattern, content, re.DOTALL)
 
     powell_speeches = []
@@ -138,19 +138,18 @@ def extract_powell_speeches(file_path):
 
             # Split into paragraphs
             # Consider both double newlines and single newlines as paragraph separators
-            paragraphs = re.split(r'\n\n+', cleaned_text)
+            paragraphs = re.split(r"\n\n+", cleaned_text)
 
             for paragraph in paragraphs:
                 # Clean each paragraph
-                paragraph = paragraph.replace('\n', ' ').strip()
-                paragraph = re.sub(r'\s+', ' ', paragraph)
+                paragraph = paragraph.replace("\n", " ").strip()
+                paragraph = re.sub(r"\s+", " ", paragraph)
 
                 # Skip empty or very short paragraphs
                 if len(paragraph) > 20:  # Minimum meaningful paragraph length
-                    powell_speeches.append({
-                        'meeting_date': meeting_date,
-                        'paragraph_text': paragraph
-                    })
+                    powell_speeches.append(
+                        {"meeting_date": meeting_date, "paragraph_text": paragraph}
+                    )
 
     return powell_speeches
 
@@ -163,8 +162,8 @@ def save_to_csv(data, output_file):
         print("No data to save!")
         return
 
-    with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['meeting_date', 'paragraph_text']
+    with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = ["meeting_date", "paragraph_text"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
 
         writer.writeheader()
@@ -213,7 +212,7 @@ def process_directory(input_dir, output_dir=None):
         os.makedirs(output_dir)
 
     # Find all .txt files
-    txt_files = [f for f in os.listdir(input_dir) if f.endswith('.txt')]
+    txt_files = [f for f in os.listdir(input_dir) if f.endswith(".txt")]
 
     if not txt_files:
         print(f"No .txt files found in {input_dir}")

@@ -19,9 +19,9 @@ def load_data(filepath):
         pd.DataFrame: Loaded dataframe with Date as index
     """
     df = pd.read_csv(filepath)
-    df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
-    df = df.sort_values('Date')
-    df = df.set_index('Date')
+    df["Date"] = pd.to_datetime(df["Date"], format="%d/%m/%Y")
+    df = df.sort_values("Date")
+    df = df.set_index("Date")
 
     print(f"Loaded data: {len(df)} rows, {len(df.columns)} columns")
     print(f"  Date range: {df.index.min()} to {df.index.max()}")
@@ -41,14 +41,16 @@ def create_binary_target(df, horizon=1):
     Returns:
         pd.DataFrame: Dataframe with new 'target' column
     """
-    df['future_close'] = df['Close'].shift(-horizon)
-    df['return'] = (df['future_close'] - df['Close']) / df['Close']
-    df['target'] = (df['return'] > 0).astype(int)
+    df["future_close"] = df["Close"].shift(-horizon)
+    df["return"] = (df["future_close"] - df["Close"]) / df["Close"]
+    df["target"] = (df["return"] > 0).astype(int)
     df_clean = df[:-horizon].copy()
 
     print("\nCreated binary target variable:")
     print(f"  Horizon: {horizon} day(s)")
-    print(f"  Target distribution: Up={df_clean['target'].sum()} ({df_clean['target'].mean()*100:.1f}%), Down={(df_clean['target']==0).sum()}")
+    print(
+        f"  Target distribution: Up={df_clean['target'].sum()} ({df_clean['target'].mean()*100:.1f}%), Down={(df_clean['target']==0).sum()}"
+    )
 
     return df_clean
 
@@ -63,7 +65,7 @@ def select_features(df):
     Returns:
         tuple: (feature_columns list, df with selected columns)
     """
-    exclude_cols = ['future_close', 'return', 'target', 'Open', 'High', 'Low']
+    exclude_cols = ["future_close", "return", "target", "Open", "High", "Low"]
     feature_cols = [col for col in df.columns if col not in exclude_cols]
 
     print(f"\nSelected features: {len(feature_cols)} -> {feature_cols}")
@@ -81,7 +83,7 @@ def prepare_announcement_data(df):
     Returns:
         pd.DataFrame: Filtered dataframe
     """
-    announcement_data = df[df['Announcement'] == 1].copy()
+    announcement_data = df[df["Announcement"] == 1].copy()
 
     print("\nFiltered to announcement days:")
     print(f"  Total announcement days: {len(announcement_data)}")
@@ -105,7 +107,7 @@ def split_data(df, feature_cols, test_size=0.2, random_state=42, shuffle_data=Tr
         tuple: (X_train, X_test, y_train, y_test)
     """
     X = df[feature_cols]
-    y = df['target']
+    y = df["target"]
 
     if shuffle_data:
         X, y = shuffle(X, y, random_state=random_state)
@@ -121,7 +123,9 @@ def split_data(df, feature_cols, test_size=0.2, random_state=42, shuffle_data=Tr
     return X_train, X_test, y_train, y_test
 
 
-def prepare_pipeline(filepath, use_announcement_only=True, horizon=1, test_size=0.2, shuffle_data=True):
+def prepare_pipeline(
+    filepath, use_announcement_only=True, horizon=1, test_size=0.2, shuffle_data=True
+):
     """
     Complete data preparation pipeline.
 
@@ -135,9 +139,9 @@ def prepare_pipeline(filepath, use_announcement_only=True, horizon=1, test_size=
     Returns:
         tuple: (X_train, X_test, y_train, y_test, feature_cols)
     """
-    print("="*60)
+    print("=" * 60)
     print("DATA PREPARATION PIPELINE")
-    print("="*60)
+    print("=" * 60)
 
     df = load_data(filepath)
     df = create_binary_target(df, horizon=horizon)
@@ -150,10 +154,10 @@ def prepare_pipeline(filepath, use_announcement_only=True, horizon=1, test_size=
     X_train, X_test, y_train, y_test = split_data(
         df, feature_cols, test_size=test_size, shuffle_data=shuffle_data
     )
-    
-    print("\n" + "="*60)
+
+    print("\n" + "=" * 60)
     print("DATA PREPARATION COMPLETE")
-    print("="*60)
+    print("=" * 60)
 
     print(X_train.head(20))
     return X_train, X_test, y_train, y_test, feature_cols
