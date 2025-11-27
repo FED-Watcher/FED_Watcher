@@ -17,7 +17,7 @@ print("[Download completed]")
 # 3. Clean and Simplify Column Names
 # We must use exactly 5 names to match the 5 columns downloaded
 # The order returned by yfinance is: Open, High, Low, Close, Volume
-sp500_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+sp500_data.columns = ["Open", "High", "Low", "Close", "Volume"]
 
 # 4. Save the Data to a CSV File
 file_name = "SP500_2018_2025_Clean.csv"
