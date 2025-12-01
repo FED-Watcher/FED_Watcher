@@ -382,8 +382,16 @@ def generate_html_report(engine, output_dir, strategy_name=None):
 
     # Add trade rows
     for _, trade in trades_df.iterrows():
-        date_str = trade['date'].strftime('%Y-%m-%d') if hasattr(trade['date'], 'strftime') else str(trade['date'])
-        pnl_class = 'positive' if trade['pnl_dollars'] > 0 else 'negative' if trade['pnl_dollars'] < 0 else ''
+        date_str = (
+            trade["date"].strftime("%Y-%m-%d")
+            if hasattr(trade["date"], "strftime")
+            else str(trade["date"])
+        )
+        pnl_class = (
+            "positive"
+            if trade["pnl_dollars"] > 0
+            else "negative" if trade["pnl_dollars"] < 0 else ""
+        )
 
         html_content += f"""
                             <tr>
@@ -413,8 +421,8 @@ def generate_html_report(engine, output_dir, strategy_name=None):
     """
 
     # Save report
-    report_path = output_dir / 'backtest_report.html'
-    with open(report_path, 'w', encoding='utf-8') as f:
+    report_path = output_dir / "backtest_report.html"
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
     print(f"[OK] HTML report saved to: {report_path}")

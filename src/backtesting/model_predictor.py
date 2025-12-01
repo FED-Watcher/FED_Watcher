@@ -16,7 +16,7 @@ class ModelPredictor:
     Supports both binary and multi-class classification models.
     """
 
-    def __init__(self, model_path, model_type='binary', scaler_path=None, metadata_path=None):
+    def __init__(self, model_path, model_type="binary", scaler_path=None, metadata_path=None):
         """
         Initialize the predictor with a trained model.
 
@@ -51,7 +51,7 @@ class ModelPredictor:
 
     def _load_model(self):
         """Load the trained model from disk."""
-        with open(self.model_path, 'rb') as f:
+        with open(self.model_path, "rb") as f:
             model = pickle.load(f)
         return model
 
@@ -59,7 +59,7 @@ class ModelPredictor:
         """Load the feature scaler from disk."""
         if not self.scaler_path or not self.scaler_path.exists():
             return None
-        with open(self.scaler_path, 'rb') as f:
+        with open(self.scaler_path, "rb") as f:
             scaler = pickle.load(f)
         return scaler
 
@@ -67,30 +67,47 @@ class ModelPredictor:
         """Load model metadata from JSON file."""
         if not self.metadata_path or not self.metadata_path.exists():
             return None
-        with open(self.metadata_path, 'r') as f:
+        with open(self.metadata_path, "r") as f:
             metadata = json.load(f)
         return metadata
 
     def _setup_features(self):
         """Set up expected feature names based on model type and metadata."""
-        if self.metadata and 'features' in self.metadata:
-            self.feature_names = self.metadata['features']
-        elif self.model_type == 'binary':
+        if self.metadata and "features" in self.metadata:
+            self.feature_names = self.metadata["features"]
+        elif self.model_type == "binary":
             # Default binary model features (from data_preparation.py)
             self.feature_names = [
-                'Close', 'Volume', 'Volume_ratio_vs_5days', 'Announcement',
-                'hawkish_dovish_ratio', 'net_sentiment_score',
-                'negative_proportion', 'neutral_proportion', 'positive_proportion',
-                'VIX_Close', 'DXY_Close', 'US02Y_Yield', 'US10Y_Yield',
-                'Yield_Curve_10Y_2Y', 'sentiment_label'
+                "Close",
+                "Volume",
+                "Volume_ratio_vs_5days",
+                "Announcement",
+                "hawkish_dovish_ratio",
+                "net_sentiment_score",
+                "negative_proportion",
+                "neutral_proportion",
+                "positive_proportion",
+                "VIX_Close",
+                "DXY_Close",
+                "US02Y_Yield",
+                "US10Y_Yield",
+                "Yield_Curve_10Y_2Y",
+                "sentiment_label",
             ]
-        elif self.model_type == 'multi_class':
+        elif self.model_type == "multi_class":
             # Default multi-class model features
             self.feature_names = [
-                'hawkish_dovish_ratio', 'net_sentiment_score',
-                'negative_proportion', 'neutral_proportion', 'positive_proportion',
-                'VIX_Close', 'DXY_Close', 'US02Y_Yield', 'US10Y_Yield',
-                'Yield_Curve_10Y_2Y', 'Volume_ratio_vs_5days'
+                "hawkish_dovish_ratio",
+                "net_sentiment_score",
+                "negative_proportion",
+                "neutral_proportion",
+                "positive_proportion",
+                "VIX_Close",
+                "DXY_Close",
+                "US02Y_Yield",
+                "US10Y_Yield",
+                "Yield_Curve_10Y_2Y",
+                "Volume_ratio_vs_5days",
             ]
         else:
             raise ValueError(f"Unknown model type: {self.model_type}")
@@ -141,8 +158,8 @@ class ModelPredictor:
         predictions = self.model.predict(X)
 
         # For multi-class models, convert from mapped classes back to original
-        if self.model_type == 'multi_class' and self.metadata:
-            inverse_mapping = self.metadata.get('inverse_mapping', {})
+        if self.model_type == "multi_class" and self.metadata:
+            inverse_mapping = self.metadata.get("inverse_mapping", {})
             if inverse_mapping:
                 # Convert string keys to int
                 inverse_mapping = {int(k): v for k, v in inverse_mapping.items()}
@@ -162,7 +179,7 @@ class ModelPredictor:
         """
         X = self.preprocess_data(data)
 
-        if hasattr(self.model, 'predict_proba'):
+        if hasattr(self.model, "predict_proba"):
             probabilities = self.model.predict_proba(X)
             return probabilities
         else:
@@ -175,11 +192,10 @@ class ModelPredictor:
         Returns:
             pd.DataFrame: DataFrame with features and their importance scores
         """
-        if hasattr(self.model, 'feature_importances_'):
-            importance_df = pd.DataFrame({
-                'feature': self.feature_names,
-                'importance': self.model.feature_importances_
-            }).sort_values('importance', ascending=False)
+        if hasattr(self.model, "feature_importances_"):
+            importance_df = pd.DataFrame(
+                {"feature": self.feature_names, "importance": self.model.feature_importances_}
+            ).sort_values("importance", ascending=False)
             return importance_df
         else:
             raise AttributeError(f"Model does not provide feature importances")
@@ -194,17 +210,17 @@ class ModelPredictor:
         Returns:
             str: Human-readable label
         """
-        if self.model_type == 'binary':
-            return 'Up' if prediction == 1 else 'Down'
-        elif self.model_type == 'multi_class':
+        if self.model_type == "binary":
+            return "Up" if prediction == 1 else "Down"
+        elif self.model_type == "multi_class":
             labels = {
-                -2: 'Strong Drop',
-                -1: 'Modest Drop',
-                0: 'Neutral',
-                1: 'Modest Rise',
-                2: 'Strong Rise'
+                -2: "Strong Drop",
+                -1: "Modest Drop",
+                0: "Neutral",
+                1: "Modest Rise",
+                2: "Strong Rise",
             }
-            return labels.get(prediction, 'Unknown')
+            return labels.get(prediction, "Unknown")
         else:
             return str(prediction)
 
@@ -218,16 +234,16 @@ class ModelPredictor:
         Returns:
             str: Trading signal ('long', 'short', or 'neutral')
         """
-        if self.model_type == 'binary':
+        if self.model_type == "binary":
             # Binary: 1 = Up (Long), 0 = Down (Short)
-            return 'long' if prediction == 1 else 'short'
-        elif self.model_type == 'multi_class':
+            return "long" if prediction == 1 else "short"
+        elif self.model_type == "multi_class":
             # Multi-class: positive = long, negative = short, 0 = neutral
             if prediction > 0:
-                return 'long'
+                return "long"
             elif prediction < 0:
-                return 'short'
+                return "short"
             else:
-                return 'neutral'
+                return "neutral"
         else:
-            return 'neutral'
+            return "neutral"

@@ -23,8 +23,10 @@ sys.path.append(str(PROJECT_ROOT))
 from src.backtesting.model_predictor import ModelPredictor
 from src.backtesting.backtest_engine import BacktestEngine
 from src.backtesting.strategies import (
-    BinaryStrategy, BinaryLongOnlyStrategy,
-    MultiClassStrategy, ThresholdStrategy
+    BinaryStrategy,
+    BinaryLongOnlyStrategy,
+    MultiClassStrategy,
+    ThresholdStrategy,
 )
 from src.backtesting.report_generator import generate_html_report
 
@@ -46,7 +48,7 @@ def load_test_data(data_path=None, announcement_only=True):
 
     # Use default path if not provided
     if data_path is None:
-        data_path = PROJECT_ROOT / 'MasterDataset_Enriched.csv'
+        data_path = PROJECT_ROOT / "MasterDataset_Enriched.csv"
     else:
         data_path = Path(data_path)
 
@@ -58,26 +60,26 @@ def load_test_data(data_path=None, announcement_only=True):
 
     # Load data
     df = pd.read_csv(data_path)
-    df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
-    df = df.sort_values('Date').reset_index(drop=True)
+    df["Date"] = pd.to_datetime(df["Date"], format="%d/%m/%Y")
+    df = df.sort_values("Date").reset_index(drop=True)
 
     print(f"[OK] Dataset loaded: {len(df)} rows")
     print(f"  Date range: {df['Date'].min()} to {df['Date'].max()}")
 
     # Filter to announcement days if requested
     if announcement_only:
-        df = df[df['Announcement'] == 1].copy()
+        df = df[df["Announcement"] == 1].copy()
         print(f"[OK] Filtered to announcement days: {len(df)} events")
 
     # Calculate forward returns
-    df['future_close'] = df['Close'].shift(-1)
-    df['return'] = (df['future_close'] - df['Close']) / df['Close']
+    df["future_close"] = df["Close"].shift(-1)
+    df["return"] = (df["future_close"] - df["Close"]) / df["Close"]
 
     # Remove last row (no future return)
     df = df[:-1].copy()
 
     # Calculate market return percentage for multi-class
-    df['market_return'] = df['return'] * 100
+    df["market_return"] = df["return"] * 100
 
     print(f"[OK] Forward returns calculated")
 
@@ -111,7 +113,7 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
 
     # Select events to verify (first, middle, last)
     if len(test_data) >= num_events:
-        indices = [0, len(test_data)//2, -1][:num_events]
+        indices = [0, len(test_data) // 2, -1][:num_events]
     else:
         indices = range(len(test_data))
 
@@ -127,7 +129,7 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
         position = strategy.get_position(prediction)
 
         # Calculate P&L
-        actual_return_pct = event['return'] * 100
+        actual_return_pct = event["return"] * 100
         pnl_pct = strategy.calculate_pnl(position, actual_return_pct)
 
         print(f"Event {idx + 1}: {event['Date'].strftime('%Y-%m-%d')}")
@@ -138,13 +140,19 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
         print(f"    Actual Return:      {actual_return_pct:+.2f}%")
         print(f"\n  Model Prediction:")
         print(f"    Prediction:         {prediction} ({pred_label})")
-        print(f"    Position Taken:     {position:+.2f} ({'Long' if position > 0 else 'Short' if position < 0 else 'Flat'})")
+        print(
+            f"    Position Taken:     {position:+.2f} ({'Long' if position > 0 else 'Short' if position < 0 else 'Flat'})"
+        )
         print(f"\n  Trade Result:")
         print(f"    P&L:                {pnl_pct:+.2f}%")
 
         # Manual calculation verification
         manual_pnl = position * actual_return_pct
-        print(f"    Manual Check:       {manual_pnl:+.2f}% [OK]" if abs(manual_pnl - pnl_pct) < 0.01 else f"    Manual Check:       {manual_pnl:+.2f}% [MISMATCH]")
+        print(
+            f"    Manual Check:       {manual_pnl:+.2f}% [OK]"
+            if abs(manual_pnl - pnl_pct) < 0.01
+            else f"    Manual Check:       {manual_pnl:+.2f}% [MISMATCH]"
+        )
 
         # Show some features
         print(f"\n  Key Features:")
@@ -170,12 +178,19 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
 
     # Use default paths if not provided
     if model_path is None:
-        model_path = PROJECT_ROOT / 'src' / 'models' / 'binary_model' / 'models' / 'xgboost_binary_classifier.pkl'
+        model_path = (
+            PROJECT_ROOT
+            / "src"
+            / "models"
+            / "binary_model"
+            / "models"
+            / "xgboost_binary_classifier.pkl"
+        )
     else:
         model_path = Path(model_path)
 
     if output_dir is None:
-        output_dir = PROJECT_ROOT / 'src' / 'backtesting' / 'outputs' / 'binary'
+        output_dir = PROJECT_ROOT / "src" / "backtesting" / "outputs" / "binary"
     else:
         output_dir = Path(output_dir)
 
@@ -191,13 +206,10 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
     print(f"Loading model from: {model_path}")
 
     # Load model
-    predictor = ModelPredictor(
-        model_path=str(model_path),
-        model_type='binary'
-    )
+    predictor = ModelPredictor(model_path=str(model_path), model_type="binary")
 
     # Define strategy
-    strategy = BinaryStrategy(name='Binary Long/Short')
+    strategy = BinaryStrategy(name="Binary Long/Short")
 
     # Initialize backtest engine with realistic costs
     engine = BacktestEngine(
@@ -206,23 +218,23 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
         initial_capital=100000,
         horizon=1,
         commission_pct=0.1,  # 0.1% commission per trade
-        slippage_pct=0.05    # 0.05% slippage
+        slippage_pct=0.05,  # 0.05% slippage
     )
 
     # Run manual verification first
     manual_verification(test_data, predictor, strategy, num_events=3)
 
     # Run full backtest
-    results = engine.run(test_data, date_col='Date', return_col='return', verbose=True)
+    results = engine.run(test_data, date_col="Date", return_col="return", verbose=True)
 
     # Generate all plots
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     print(f"\nGenerating visualizations...")
-    engine.plot_equity_curve(save_path=f'{output_dir}/equity_curve.png', show_trades=True)
-    engine.plot_returns_distribution(save_path=f'{output_dir}/returns_distribution.png')
-    engine.plot_drawdown(save_path=f'{output_dir}/drawdown.png')
-    engine.plot_monthly_returns(save_path=f'{output_dir}/monthly_returns.png')
-    engine.plot_trade_analysis(save_path=f'{output_dir}/trade_analysis.png')
+    engine.plot_equity_curve(save_path=f"{output_dir}/equity_curve.png", show_trades=True)
+    engine.plot_returns_distribution(save_path=f"{output_dir}/returns_distribution.png")
+    engine.plot_drawdown(save_path=f"{output_dir}/drawdown.png")
+    engine.plot_monthly_returns(save_path=f"{output_dir}/monthly_returns.png")
+    engine.plot_trade_analysis(save_path=f"{output_dir}/trade_analysis.png")
 
     # Export results
     engine.export_results(output_dir=output_dir)
@@ -234,8 +246,9 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
     return engine, results
 
 
-def run_multiclass_backtest(test_data, model_path=None, scaler_path=None,
-                            metadata_path=None, output_dir=None):
+def run_multiclass_backtest(
+    test_data, model_path=None, scaler_path=None, metadata_path=None, output_dir=None
+):
     """
     Run backtest with multi-class classification model.
 
@@ -251,25 +264,25 @@ def run_multiclass_backtest(test_data, model_path=None, scaler_path=None,
     print(f"{'='*60}\n")
 
     # Use default paths if not provided
-    multi_base = PROJECT_ROOT / 'src' / 'models' / 'multi_classification' / 'src' / 'outputs'
+    multi_base = PROJECT_ROOT / "src" / "models" / "multi_classification" / "src" / "outputs"
 
     if model_path is None:
-        model_path = multi_base / 'enhanced_multi_class_model.pkl'
+        model_path = multi_base / "enhanced_multi_class_model.pkl"
     else:
         model_path = Path(model_path)
 
     if scaler_path is None:
-        scaler_path = multi_base / 'feature_scaler.pkl'
+        scaler_path = multi_base / "feature_scaler.pkl"
     else:
         scaler_path = Path(scaler_path)
 
     if metadata_path is None:
-        metadata_path = multi_base / 'enhanced_model_metadata.json'
+        metadata_path = multi_base / "enhanced_model_metadata.json"
     else:
         metadata_path = Path(metadata_path)
 
     if output_dir is None:
-        output_dir = PROJECT_ROOT / 'src' / 'backtesting' / 'outputs' / 'multiclass'
+        output_dir = PROJECT_ROOT / "src" / "backtesting" / "outputs" / "multiclass"
     else:
         output_dir = Path(output_dir)
 
@@ -286,13 +299,13 @@ def run_multiclass_backtest(test_data, model_path=None, scaler_path=None,
     # Load model
     predictor = ModelPredictor(
         model_path=str(model_path),
-        model_type='multi_class',
+        model_type="multi_class",
         scaler_path=str(scaler_path) if scaler_path.exists() else None,
-        metadata_path=str(metadata_path) if metadata_path.exists() else None
+        metadata_path=str(metadata_path) if metadata_path.exists() else None,
     )
 
     # Define strategy (scaled positions by magnitude)
-    strategy = MultiClassStrategy(name='Multi-Class Scaled Positions', scale_positions=True)
+    strategy = MultiClassStrategy(name="Multi-Class Scaled Positions", scale_positions=True)
 
     # Initialize backtest engine with realistic costs
     engine = BacktestEngine(
@@ -301,23 +314,23 @@ def run_multiclass_backtest(test_data, model_path=None, scaler_path=None,
         initial_capital=100000,
         horizon=1,
         commission_pct=0.1,  # 0.1% commission per trade
-        slippage_pct=0.05    # 0.05% slippage
+        slippage_pct=0.05,  # 0.05% slippage
     )
 
     # Run manual verification first
     manual_verification(test_data, predictor, strategy, num_events=3)
 
     # Run full backtest
-    results = engine.run(test_data, date_col='Date', return_col='return', verbose=True)
+    results = engine.run(test_data, date_col="Date", return_col="return", verbose=True)
 
     # Generate all plots
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     print(f"\nGenerating visualizations...")
-    engine.plot_equity_curve(save_path=f'{output_dir}/equity_curve.png', show_trades=True)
-    engine.plot_returns_distribution(save_path=f'{output_dir}/returns_distribution.png')
-    engine.plot_drawdown(save_path=f'{output_dir}/drawdown.png')
-    engine.plot_monthly_returns(save_path=f'{output_dir}/monthly_returns.png')
-    engine.plot_trade_analysis(save_path=f'{output_dir}/trade_analysis.png')
+    engine.plot_equity_curve(save_path=f"{output_dir}/equity_curve.png", show_trades=True)
+    engine.plot_returns_distribution(save_path=f"{output_dir}/returns_distribution.png")
+    engine.plot_drawdown(save_path=f"{output_dir}/drawdown.png")
+    engine.plot_monthly_returns(save_path=f"{output_dir}/monthly_returns.png")
+    engine.plot_trade_analysis(save_path=f"{output_dir}/trade_analysis.png")
 
     # Export results
     engine.export_results(output_dir=output_dir)
@@ -343,68 +356,84 @@ def compare_strategies(test_data):
     strategies_to_test = []
 
     # Binary model strategies
-    binary_model_path = PROJECT_ROOT / 'src' / 'models' / 'binary_model' / 'models' / 'xgboost_binary_classifier.pkl'
+    binary_model_path = (
+        PROJECT_ROOT
+        / "src"
+        / "models"
+        / "binary_model"
+        / "models"
+        / "xgboost_binary_classifier.pkl"
+    )
     if binary_model_path.exists():
-        binary_predictor = ModelPredictor(model_path=str(binary_model_path), model_type='binary')
+        binary_predictor = ModelPredictor(model_path=str(binary_model_path), model_type="binary")
 
-        strategies_to_test.extend([
-            (binary_predictor, BinaryStrategy(name='Binary: Long/Short')),
-            (binary_predictor, BinaryLongOnlyStrategy(name='Binary: Long Only')),
-        ])
+        strategies_to_test.extend(
+            [
+                (binary_predictor, BinaryStrategy(name="Binary: Long/Short")),
+                (binary_predictor, BinaryLongOnlyStrategy(name="Binary: Long Only")),
+            ]
+        )
 
     # Multi-class model strategies
-    multi_base = PROJECT_ROOT / 'src' / 'models' / 'multi_classification' / 'src' / 'outputs'
-    multi_model_path = multi_base / 'enhanced_multi_class_model.pkl'
-    multi_scaler_path = multi_base / 'feature_scaler.pkl'
-    multi_metadata_path = multi_base / 'enhanced_model_metadata.json'
+    multi_base = PROJECT_ROOT / "src" / "models" / "multi_classification" / "src" / "outputs"
+    multi_model_path = multi_base / "enhanced_multi_class_model.pkl"
+    multi_scaler_path = multi_base / "feature_scaler.pkl"
+    multi_metadata_path = multi_base / "enhanced_model_metadata.json"
 
     if multi_model_path.exists():
         multi_predictor = ModelPredictor(
             model_path=str(multi_model_path),
-            model_type='multi_class',
+            model_type="multi_class",
             scaler_path=str(multi_scaler_path) if multi_scaler_path.exists() else None,
-            metadata_path=str(multi_metadata_path) if multi_metadata_path.exists() else None
+            metadata_path=str(multi_metadata_path) if multi_metadata_path.exists() else None,
         )
 
-        strategies_to_test.extend([
-            (multi_predictor, MultiClassStrategy(name='Multi-Class: Scaled', scale_positions=True)),
-            (multi_predictor, MultiClassStrategy(name='Multi-Class: Binary', scale_positions=False)),
-        ])
+        strategies_to_test.extend(
+            [
+                (
+                    multi_predictor,
+                    MultiClassStrategy(name="Multi-Class: Scaled", scale_positions=True),
+                ),
+                (
+                    multi_predictor,
+                    MultiClassStrategy(name="Multi-Class: Binary", scale_positions=False),
+                ),
+            ]
+        )
 
     # Run backtests for each strategy
     results_comparison = []
 
     for predictor, strategy in strategies_to_test:
         engine = BacktestEngine(
-            predictor=predictor,
-            strategy=strategy,
-            initial_capital=100000,
-            horizon=1
+            predictor=predictor, strategy=strategy, initial_capital=100000, horizon=1
         )
 
-        engine.run(test_data, date_col='Date', return_col='return', verbose=False)
+        engine.run(test_data, date_col="Date", return_col="return", verbose=False)
 
-        results_comparison.append({
-            'Strategy': strategy.name,
-            'Total Return (%)': engine.metrics['total_return_pct'],
-            'Win Rate (%)': engine.metrics['win_rate'] * 100,
-            'Sharpe Ratio': engine.metrics['sharpe_ratio'],
-            'Max Drawdown (%)': engine.metrics['max_drawdown_pct'],
-            'Profit Factor': engine.metrics['profit_factor'],
-            'Total Trades': engine.metrics['total_trades']
-        })
+        results_comparison.append(
+            {
+                "Strategy": strategy.name,
+                "Total Return (%)": engine.metrics["total_return_pct"],
+                "Win Rate (%)": engine.metrics["win_rate"] * 100,
+                "Sharpe Ratio": engine.metrics["sharpe_ratio"],
+                "Max Drawdown (%)": engine.metrics["max_drawdown_pct"],
+                "Profit Factor": engine.metrics["profit_factor"],
+                "Total Trades": engine.metrics["total_trades"],
+            }
+        )
 
     # Display comparison table
     comparison_df = pd.DataFrame(results_comparison)
     print("\nSTRATEGY PERFORMANCE COMPARISON")
-    print("="*100)
+    print("=" * 100)
     print(comparison_df.to_string(index=False))
-    print("="*100)
+    print("=" * 100)
 
     # Save comparison
-    output_dir = PROJECT_ROOT / 'src' / 'backtesting' / 'outputs'
+    output_dir = PROJECT_ROOT / "src" / "backtesting" / "outputs"
     output_dir.mkdir(parents=True, exist_ok=True)
-    comparison_df.to_csv(output_dir / 'strategy_comparison.csv', index=False)
+    comparison_df.to_csv(output_dir / "strategy_comparison.csv", index=False)
     print(f"\n[OK] Comparison saved to: {output_dir / 'strategy_comparison.csv'}")
 
 
@@ -422,7 +451,15 @@ def main():
     binary_engine, binary_results = run_binary_backtest(test_data)
 
     # Run multi-class model backtest (if model exists)
-    multi_model_path = PROJECT_ROOT / 'src' / 'models' / 'multi_classification' / 'src' / 'outputs' / 'enhanced_multi_class_model.pkl'
+    multi_model_path = (
+        PROJECT_ROOT
+        / "src"
+        / "models"
+        / "multi_classification"
+        / "src"
+        / "outputs"
+        / "enhanced_multi_class_model.pkl"
+    )
     if multi_model_path.exists():
         multi_engine, multi_results = run_multiclass_backtest(test_data)
     else:

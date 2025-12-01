@@ -29,8 +29,15 @@ class BacktestEngine:
     - Returns calculated using close-to-close prices
     """
 
-    def __init__(self, predictor, strategy, initial_capital=100000, horizon=1,
-                 commission_pct=0.0, slippage_pct=0.0):
+    def __init__(
+        self,
+        predictor,
+        strategy,
+        initial_capital=100000,
+        horizon=1,
+        commission_pct=0.0,
+        slippage_pct=0.0,
+    ):
         """
         Initialize backtesting engine.
 
@@ -65,7 +72,7 @@ class BacktestEngine:
         print(f"Slippage: {self.slippage_pct}%")
         print(f"{'='*60}\n")
 
-    def run(self, test_data, date_col='Date', return_col='return', verbose=True):
+    def run(self, test_data, date_col="Date", return_col="return", verbose=True):
         """
         Run backtest on test data.
 
@@ -109,7 +116,7 @@ class BacktestEngine:
             # Get actual return for this event
             if return_col in test_data.columns:
                 actual_return = test_data[return_col].iloc[idx]
-            elif hasattr(test_data.index, 'get_loc'):
+            elif hasattr(test_data.index, "get_loc"):
                 actual_return = test_data.loc[date, return_col]
             else:
                 actual_return = test_data[return_col].iloc[idx]
@@ -118,10 +125,7 @@ class BacktestEngine:
             event_probs = probabilities[idx] if probabilities is not None else None
 
             # Determine position based on prediction and strategy
-            position = self.strategy.get_position(
-                pred,
-                probabilities=event_probs
-            )
+            position = self.strategy.get_position(pred, probabilities=event_probs)
 
             # Calculate P&L for this trade
             pnl_pct = self.strategy.calculate_pnl(position, actual_return * 100)  # Convert to %
@@ -142,34 +146,33 @@ class BacktestEngine:
 
             # Store trade details
             trade = {
-                'date': date,
-                'prediction': pred,
-                'prediction_label': pred_label,
-                'position': position,
-                'actual_return_pct': actual_return * 100,
-                'pnl_pct': pnl_pct,
-                'pnl_dollars': pnl_dollars,
-                'equity': current_equity
+                "date": date,
+                "prediction": pred,
+                "prediction_label": pred_label,
+                "position": position,
+                "actual_return_pct": actual_return * 100,
+                "pnl_pct": pnl_pct,
+                "pnl_dollars": pnl_dollars,
+                "equity": current_equity,
             }
 
             if event_probs is not None:
-                trade['max_probability'] = np.max(event_probs)
+                trade["max_probability"] = np.max(event_probs)
 
             self.trades.append(trade)
 
             # Store equity point
-            self.equity_curve.append({
-                'date': date,
-                'equity': current_equity
-            })
+            self.equity_curve.append({"date": date, "equity": current_equity})
 
             if verbose and (idx + 1) % 5 == 0:
-                print(f"  Event {idx + 1}/{len(test_data)}: "
-                      f"{date.strftime('%Y-%m-%d') if hasattr(date, 'strftime') else date} | "
-                      f"Pred: {pred_label:12s} | "
-                      f"Position: {position:+.2f} | "
-                      f"P&L: ${pnl_dollars:+,.2f} | "
-                      f"Equity: ${current_equity:,.2f}")
+                print(
+                    f"  Event {idx + 1}/{len(test_data)}: "
+                    f"{date.strftime('%Y-%m-%d') if hasattr(date, 'strftime') else date} | "
+                    f"Pred: {pred_label:12s} | "
+                    f"Position: {position:+.2f} | "
+                    f"P&L: ${pnl_dollars:+,.2f} | "
+                    f"Equity: ${current_equity:,.2f}"
+                )
 
         # Convert to DataFrames
         self.trades_df = pd.DataFrame(self.trades)
@@ -192,29 +195,29 @@ class BacktestEngine:
 
         # Basic stats
         total_trades = len(trades_df)
-        total_return = (self.equity_df['equity'].iloc[-1] / self.initial_capital - 1) * 100
+        total_return = (self.equity_df["equity"].iloc[-1] / self.initial_capital - 1) * 100
 
         # Win/loss statistics
-        winning_trades = trades_df[trades_df['pnl_dollars'] > 0]
-        losing_trades = trades_df[trades_df['pnl_dollars'] < 0]
-        neutral_trades = trades_df[trades_df['pnl_dollars'] == 0]
+        winning_trades = trades_df[trades_df["pnl_dollars"] > 0]
+        losing_trades = trades_df[trades_df["pnl_dollars"] < 0]
+        neutral_trades = trades_df[trades_df["pnl_dollars"] == 0]
 
         win_rate = len(winning_trades) / total_trades if total_trades > 0 else 0
         loss_rate = len(losing_trades) / total_trades if total_trades > 0 else 0
 
-        avg_win = winning_trades['pnl_pct'].mean() if len(winning_trades) > 0 else 0
-        avg_loss = losing_trades['pnl_pct'].mean() if len(losing_trades) > 0 else 0
+        avg_win = winning_trades["pnl_pct"].mean() if len(winning_trades) > 0 else 0
+        avg_loss = losing_trades["pnl_pct"].mean() if len(losing_trades) > 0 else 0
 
         # Risk metrics
-        returns_series = trades_df['pnl_pct']
+        returns_series = trades_df["pnl_pct"]
         sharpe_ratio = self._calculate_sharpe(returns_series)
         sortino_ratio = self._calculate_sortino(returns_series)
-        max_drawdown = self._calculate_max_drawdown(self.equity_df['equity'])
+        max_drawdown = self._calculate_max_drawdown(self.equity_df["equity"])
         calmar_ratio = self._calculate_calmar(total_return, max_drawdown)
 
         # Profit factor
-        total_wins = winning_trades['pnl_dollars'].sum() if len(winning_trades) > 0 else 0
-        total_losses = abs(losing_trades['pnl_dollars'].sum()) if len(losing_trades) > 0 else 0
+        total_wins = winning_trades["pnl_dollars"].sum() if len(winning_trades) > 0 else 0
+        total_losses = abs(losing_trades["pnl_dollars"].sum()) if len(losing_trades) > 0 else 0
         profit_factor = total_wins / total_losses if total_losses > 0 else np.inf
 
         # Win/Loss streaks
@@ -227,30 +230,31 @@ class BacktestEngine:
         recovery_factor = abs(total_return / max_drawdown) if max_drawdown != 0 else np.inf
 
         self.metrics = {
-            'total_trades': total_trades,
-            'total_return_pct': total_return,
-            'annualized_return_pct': self._annualize_return(total_return, len(trades_df)),
-            'final_equity': self.equity_df['equity'].iloc[-1],
-            'winning_trades': len(winning_trades),
-            'losing_trades': len(losing_trades),
-            'neutral_trades': len(neutral_trades),
-            'win_rate': win_rate,
-            'loss_rate': loss_rate,
-            'avg_win_pct': avg_win,
-            'avg_loss_pct': avg_loss,
-            'best_trade_pct': trades_df['pnl_pct'].max(),
-            'worst_trade_pct': trades_df['pnl_pct'].min(),
-            'sharpe_ratio': sharpe_ratio,
-            'sortino_ratio': sortino_ratio,
-            'calmar_ratio': calmar_ratio,
-            'max_drawdown_pct': max_drawdown,
-            'profit_factor': profit_factor,
-            'expectancy': expectancy,
-            'recovery_factor': recovery_factor,
-            'max_win_streak': win_streak,
-            'max_loss_streak': loss_streak,
-            'total_pnl': self.equity_df['equity'].iloc[-1] - self.initial_capital,
-            'total_commission_cost': self.commission_pct * len(trades_df[trades_df['position'] != 0])
+            "total_trades": total_trades,
+            "total_return_pct": total_return,
+            "annualized_return_pct": self._annualize_return(total_return, len(trades_df)),
+            "final_equity": self.equity_df["equity"].iloc[-1],
+            "winning_trades": len(winning_trades),
+            "losing_trades": len(losing_trades),
+            "neutral_trades": len(neutral_trades),
+            "win_rate": win_rate,
+            "loss_rate": loss_rate,
+            "avg_win_pct": avg_win,
+            "avg_loss_pct": avg_loss,
+            "best_trade_pct": trades_df["pnl_pct"].max(),
+            "worst_trade_pct": trades_df["pnl_pct"].min(),
+            "sharpe_ratio": sharpe_ratio,
+            "sortino_ratio": sortino_ratio,
+            "calmar_ratio": calmar_ratio,
+            "max_drawdown_pct": max_drawdown,
+            "profit_factor": profit_factor,
+            "expectancy": expectancy,
+            "recovery_factor": recovery_factor,
+            "max_win_streak": win_streak,
+            "max_loss_streak": loss_streak,
+            "total_pnl": self.equity_df["equity"].iloc[-1] - self.initial_capital,
+            "total_commission_cost": self.commission_pct
+            * len(trades_df[trades_df["position"] != 0]),
         }
 
     def _calculate_sortino(self, returns, risk_free_rate=0.0, periods_per_year=252):
@@ -305,12 +309,14 @@ class BacktestEngine:
         if len(trades_df) == 0:
             return 0, 0
 
-        is_win = (trades_df['pnl_dollars'] > 0).astype(int)
-        is_loss = (trades_df['pnl_dollars'] < 0).astype(int)
+        is_win = (trades_df["pnl_dollars"] > 0).astype(int)
+        is_loss = (trades_df["pnl_dollars"] < 0).astype(int)
 
         # Calculate streaks
         win_streaks = is_win * (is_win.groupby((is_win != is_win.shift()).cumsum()).cumcount() + 1)
-        loss_streaks = is_loss * (is_loss.groupby((is_loss != is_loss.shift()).cumsum()).cumcount() + 1)
+        loss_streaks = is_loss * (
+            is_loss.groupby((is_loss != is_loss.shift()).cumsum()).cumcount() + 1
+        )
 
         max_win_streak = win_streaks.max() if len(win_streaks) > 0 else 0
         max_loss_streak = loss_streaks.max() if len(loss_streaks) > 0 else 0
@@ -437,47 +443,73 @@ class BacktestEngine:
 
         # Plot equity curve
         equity_df = self.equity_df.copy()
-        if isinstance(equity_df['date'].iloc[0], str):
-            equity_df['date'] = pd.to_datetime(equity_df['date'])
+        if isinstance(equity_df["date"].iloc[0], str):
+            equity_df["date"] = pd.to_datetime(equity_df["date"])
 
-        ax.plot(equity_df['date'], equity_df['equity'], linewidth=2.5,
-                color='steelblue', label='Portfolio Equity')
+        ax.plot(
+            equity_df["date"],
+            equity_df["equity"],
+            linewidth=2.5,
+            color="steelblue",
+            label="Portfolio Equity",
+        )
 
         # Add horizontal line at initial capital
-        ax.axhline(y=self.initial_capital, color='gray', linestyle='--',
-                   alpha=0.5, label='Initial Capital')
+        ax.axhline(
+            y=self.initial_capital, color="gray", linestyle="--", alpha=0.5, label="Initial Capital"
+        )
 
         # Mark winning and losing trades
         if show_trades:
             trades_df = self.trades_df.copy()
-            if isinstance(trades_df['date'].iloc[0], str):
-                trades_df['date'] = pd.to_datetime(trades_df['date'])
+            if isinstance(trades_df["date"].iloc[0], str):
+                trades_df["date"] = pd.to_datetime(trades_df["date"])
 
-            wins = trades_df[trades_df['pnl_dollars'] > 0]
-            losses = trades_df[trades_df['pnl_dollars'] < 0]
+            wins = trades_df[trades_df["pnl_dollars"] > 0]
+            losses = trades_df[trades_df["pnl_dollars"] < 0]
 
-            ax.scatter(wins['date'], wins['equity'], color='green',
-                      marker='^', s=100, alpha=0.6, label='Winning Trades', zorder=5)
-            ax.scatter(losses['date'], losses['equity'], color='red',
-                      marker='v', s=100, alpha=0.6, label='Losing Trades', zorder=5)
+            ax.scatter(
+                wins["date"],
+                wins["equity"],
+                color="green",
+                marker="^",
+                s=100,
+                alpha=0.6,
+                label="Winning Trades",
+                zorder=5,
+            )
+            ax.scatter(
+                losses["date"],
+                losses["equity"],
+                color="red",
+                marker="v",
+                s=100,
+                alpha=0.6,
+                label="Losing Trades",
+                zorder=5,
+            )
 
         # Formatting
-        ax.set_xlabel('Date', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Portfolio Value ($)', fontsize=12, fontweight='bold')
-        ax.set_title(f'Backtesting Results: {self.strategy.name}\n'
-                    f'Total Return: {self.metrics["total_return_pct"]:+.2f}% | '
-                    f'Sharpe: {self.metrics["sharpe_ratio"]:.2f} | '
-                    f'Max DD: {self.metrics["max_drawdown_pct"]:.2f}%',
-                    fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel("Date", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Portfolio Value ($)", fontsize=12, fontweight="bold")
+        ax.set_title(
+            f"Backtesting Results: {self.strategy.name}\n"
+            f'Total Return: {self.metrics["total_return_pct"]:+.2f}% | '
+            f'Sharpe: {self.metrics["sharpe_ratio"]:.2f} | '
+            f'Max DD: {self.metrics["max_drawdown_pct"]:.2f}%',
+            fontsize=14,
+            fontweight="bold",
+            pad=20,
+        )
 
-        ax.legend(loc='best', fontsize=10)
+        ax.legend(loc="best", fontsize=10)
         ax.grid(True, alpha=0.3)
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x:,.0f}'))
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"${x:,.0f}"))
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"[OK] Equity curve saved to: {save_path}")
 
         plt.show()
@@ -491,33 +523,39 @@ class BacktestEngine:
         """
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-        returns = self.trades_df['pnl_pct']
+        returns = self.trades_df["pnl_pct"]
 
         # Histogram
-        ax1.hist(returns, bins=20, color='steelblue', alpha=0.7, edgecolor='black')
-        ax1.axvline(x=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
-        ax1.axvline(x=returns.mean(), color='green', linestyle='--',
-                   linewidth=2, alpha=0.7, label=f'Mean: {returns.mean():.2f}%')
-        ax1.set_xlabel('Return (%)', fontsize=11, fontweight='bold')
-        ax1.set_ylabel('Frequency', fontsize=11, fontweight='bold')
-        ax1.set_title('Distribution of Trade Returns', fontsize=12, fontweight='bold')
+        ax1.hist(returns, bins=20, color="steelblue", alpha=0.7, edgecolor="black")
+        ax1.axvline(x=0, color="red", linestyle="--", linewidth=2, alpha=0.7)
+        ax1.axvline(
+            x=returns.mean(),
+            color="green",
+            linestyle="--",
+            linewidth=2,
+            alpha=0.7,
+            label=f"Mean: {returns.mean():.2f}%",
+        )
+        ax1.set_xlabel("Return (%)", fontsize=11, fontweight="bold")
+        ax1.set_ylabel("Frequency", fontsize=11, fontweight="bold")
+        ax1.set_title("Distribution of Trade Returns", fontsize=12, fontweight="bold")
         ax1.legend()
         ax1.grid(True, alpha=0.3)
 
         # Box plot by prediction
         trades_df = self.trades_df.copy()
-        sns.boxplot(data=trades_df, x='prediction_label', y='pnl_pct', ax=ax2, palette='Set2')
-        ax2.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.5)
-        ax2.set_xlabel('Prediction', fontsize=11, fontweight='bold')
-        ax2.set_ylabel('Return (%)', fontsize=11, fontweight='bold')
-        ax2.set_title('Returns by Prediction Type', fontsize=12, fontweight='bold')
-        ax2.grid(True, alpha=0.3, axis='y')
+        sns.boxplot(data=trades_df, x="prediction_label", y="pnl_pct", ax=ax2, palette="Set2")
+        ax2.axhline(y=0, color="red", linestyle="--", linewidth=1, alpha=0.5)
+        ax2.set_xlabel("Prediction", fontsize=11, fontweight="bold")
+        ax2.set_ylabel("Return (%)", fontsize=11, fontweight="bold")
+        ax2.set_title("Returns by Prediction Type", fontsize=12, fontweight="bold")
+        ax2.grid(True, alpha=0.3, axis="y")
         plt.xticks(rotation=45)
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"[OK] Returns distribution saved to: {save_path}")
 
         plt.show()
@@ -532,41 +570,46 @@ class BacktestEngine:
         fig, ax = plt.subplots(figsize=(14, 6))
 
         equity_df = self.equity_df.copy()
-        if isinstance(equity_df['date'].iloc[0], str):
-            equity_df['date'] = pd.to_datetime(equity_df['date'])
+        if isinstance(equity_df["date"].iloc[0], str):
+            equity_df["date"] = pd.to_datetime(equity_df["date"])
 
         # Calculate drawdown
-        running_max = equity_df['equity'].expanding().max()
-        drawdown = ((equity_df['equity'] - running_max) / running_max) * 100
+        running_max = equity_df["equity"].expanding().max()
+        drawdown = ((equity_df["equity"] - running_max) / running_max) * 100
 
         # Plot
-        ax.fill_between(equity_df['date'], drawdown, 0, color='red', alpha=0.3)
-        ax.plot(equity_df['date'], drawdown, color='darkred', linewidth=2)
-        ax.axhline(y=0, color='black', linestyle='-', linewidth=1)
+        ax.fill_between(equity_df["date"], drawdown, 0, color="red", alpha=0.3)
+        ax.plot(equity_df["date"], drawdown, color="darkred", linewidth=2)
+        ax.axhline(y=0, color="black", linestyle="-", linewidth=1)
 
         # Mark max drawdown
         max_dd_idx = drawdown.idxmin()
-        max_dd_date = equity_df.loc[max_dd_idx, 'date']
+        max_dd_date = equity_df.loc[max_dd_idx, "date"]
         max_dd_val = drawdown[max_dd_idx]
-        ax.scatter([max_dd_date], [max_dd_val], color='red', s=150, zorder=5, marker='v')
-        ax.annotate(f'Max DD: {max_dd_val:.2f}%',
-                   xy=(max_dd_date, max_dd_val),
-                   xytext=(10, -20), textcoords='offset points',
-                   fontsize=10, fontweight='bold',
-                   bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.7),
-                   arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+        ax.scatter([max_dd_date], [max_dd_val], color="red", s=150, zorder=5, marker="v")
+        ax.annotate(
+            f"Max DD: {max_dd_val:.2f}%",
+            xy=(max_dd_date, max_dd_val),
+            xytext=(10, -20),
+            textcoords="offset points",
+            fontsize=10,
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.5", fc="yellow", alpha=0.7),
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0"),
+        )
 
         # Formatting
-        ax.set_xlabel('Date', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Drawdown (%)', fontsize=12, fontweight='bold')
-        ax.set_title(f'Underwater Plot: {self.strategy.name}',
-                    fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel("Date", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Drawdown (%)", fontsize=12, fontweight="bold")
+        ax.set_title(
+            f"Underwater Plot: {self.strategy.name}", fontsize=14, fontweight="bold", pad=20
+        )
         ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"[OK] Drawdown plot saved to: {save_path}")
 
         plt.show()
@@ -579,18 +622,18 @@ class BacktestEngine:
             save_path (str): Path to save plot (optional)
         """
         trades_df = self.trades_df.copy()
-        if isinstance(trades_df['date'].iloc[0], str):
-            trades_df['date'] = pd.to_datetime(trades_df['date'])
+        if isinstance(trades_df["date"].iloc[0], str):
+            trades_df["date"] = pd.to_datetime(trades_df["date"])
 
         # Extract year and month
-        trades_df['year'] = trades_df['date'].dt.year
-        trades_df['month'] = trades_df['date'].dt.month
+        trades_df["year"] = trades_df["date"].dt.year
+        trades_df["month"] = trades_df["date"].dt.month
 
         # Group by year and month
-        monthly_returns = trades_df.groupby(['year', 'month'])['pnl_pct'].sum().reset_index()
+        monthly_returns = trades_df.groupby(["year", "month"])["pnl_pct"].sum().reset_index()
 
         # Pivot for heatmap
-        pivot_data = monthly_returns.pivot(index='year', columns='month', values='pnl_pct')
+        pivot_data = monthly_returns.pivot(index="year", columns="month", values="pnl_pct")
 
         # Create heatmap
         fig, ax = plt.subplots(figsize=(14, 6))
@@ -598,26 +641,47 @@ class BacktestEngine:
         # Custom colormap (red for negative, green for positive)
         cmap = sns.diverging_palette(10, 130, as_cmap=True)
 
-        sns.heatmap(pivot_data, annot=True, fmt='.2f', cmap=cmap, center=0,
-                   cbar_kws={'label': 'Return (%)'}, ax=ax,
-                   linewidths=0.5, linecolor='gray')
+        sns.heatmap(
+            pivot_data,
+            annot=True,
+            fmt=".2f",
+            cmap=cmap,
+            center=0,
+            cbar_kws={"label": "Return (%)"},
+            ax=ax,
+            linewidths=0.5,
+            linecolor="gray",
+        )
 
-        ax.set_xlabel('Month', fontsize=12, fontweight='bold')
-        ax.set_ylabel('Year', fontsize=12, fontweight='bold')
-        ax.set_title(f'Monthly Returns Heatmap: {self.strategy.name}',
-                    fontsize=14, fontweight='bold', pad=20)
+        ax.set_xlabel("Month", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Year", fontsize=12, fontweight="bold")
+        ax.set_title(
+            f"Monthly Returns Heatmap: {self.strategy.name}", fontsize=14, fontweight="bold", pad=20
+        )
 
         # Month names - map to actual columns present
-        month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        month_names = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ]
         # Only set labels for months that exist in the data
-        present_months = [month_names[i-1] for i in pivot_data.columns if 1 <= i <= 12]
+        present_months = [month_names[i - 1] for i in pivot_data.columns if 1 <= i <= 12]
         ax.set_xticklabels(present_months, rotation=0)
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"[OK] Monthly returns heatmap saved to: {save_path}")
 
         plt.show()
@@ -632,92 +696,118 @@ class BacktestEngine:
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
         trades_df = self.trades_df.copy()
-        if isinstance(trades_df['date'].iloc[0], str):
-            trades_df['date'] = pd.to_datetime(trades_df['date'])
+        if isinstance(trades_df["date"].iloc[0], str):
+            trades_df["date"] = pd.to_datetime(trades_df["date"])
 
         # Panel 1: Cumulative P&L
         ax1 = axes[0, 0]
-        cumulative_pnl = trades_df['pnl_dollars'].cumsum()
-        ax1.plot(trades_df['date'], cumulative_pnl, linewidth=2.5, color='steelblue')
-        ax1.fill_between(trades_df['date'], cumulative_pnl, 0, alpha=0.3, color='steelblue')
-        ax1.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
-        ax1.set_xlabel('Date', fontweight='bold')
-        ax1.set_ylabel('Cumulative P&L ($)', fontweight='bold')
-        ax1.set_title('Cumulative Profit & Loss', fontweight='bold', pad=10)
+        cumulative_pnl = trades_df["pnl_dollars"].cumsum()
+        ax1.plot(trades_df["date"], cumulative_pnl, linewidth=2.5, color="steelblue")
+        ax1.fill_between(trades_df["date"], cumulative_pnl, 0, alpha=0.3, color="steelblue")
+        ax1.axhline(y=0, color="gray", linestyle="--", alpha=0.5)
+        ax1.set_xlabel("Date", fontweight="bold")
+        ax1.set_ylabel("Cumulative P&L ($)", fontweight="bold")
+        ax1.set_title("Cumulative Profit & Loss", fontweight="bold", pad=10)
         ax1.grid(True, alpha=0.3)
-        ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x:,.0f}'))
+        ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"${x:,.0f}"))
 
         # Panel 2: Trade P&L by Position Type
         ax2 = axes[0, 1]
-        long_trades = trades_df[trades_df['position'] > 0]['pnl_pct']
-        short_trades = trades_df[trades_df['position'] < 0]['pnl_pct']
-        flat_trades = trades_df[trades_df['position'] == 0]['pnl_pct']
+        long_trades = trades_df[trades_df["position"] > 0]["pnl_pct"]
+        short_trades = trades_df[trades_df["position"] < 0]["pnl_pct"]
+        flat_trades = trades_df[trades_df["position"] == 0]["pnl_pct"]
 
         box_data = []
         labels = []
         if len(long_trades) > 0:
             box_data.append(long_trades)
-            labels.append(f'Long ({len(long_trades)})')
+            labels.append(f"Long ({len(long_trades)})")
         if len(short_trades) > 0:
             box_data.append(short_trades)
-            labels.append(f'Short ({len(short_trades)})')
+            labels.append(f"Short ({len(short_trades)})")
         if len(flat_trades) > 0:
             box_data.append(flat_trades)
-            labels.append(f'Flat ({len(flat_trades)})')
+            labels.append(f"Flat ({len(flat_trades)})")
 
-        bp = ax2.boxplot(box_data, labels=labels, patch_artist=True,
-                        showmeans=True, meanline=True)
-        for patch, color in zip(bp['boxes'], ['green', 'red', 'gray']):
+        bp = ax2.boxplot(box_data, labels=labels, patch_artist=True, showmeans=True, meanline=True)
+        for patch, color in zip(bp["boxes"], ["green", "red", "gray"]):
             patch.set_facecolor(color)
             patch.set_alpha(0.6)
-        ax2.axhline(y=0, color='black', linestyle='--', linewidth=1)
-        ax2.set_ylabel('Return (%)', fontweight='bold')
-        ax2.set_title('Returns by Position Type', fontweight='bold', pad=10)
-        ax2.grid(True, alpha=0.3, axis='y')
+        ax2.axhline(y=0, color="black", linestyle="--", linewidth=1)
+        ax2.set_ylabel("Return (%)", fontweight="bold")
+        ax2.set_title("Returns by Position Type", fontweight="bold", pad=10)
+        ax2.grid(True, alpha=0.3, axis="y")
 
         # Panel 3: Rolling Win Rate
         ax3 = axes[1, 0]
         window = min(5, len(trades_df))
-        trades_df['is_win'] = (trades_df['pnl_dollars'] > 0).astype(int)
-        rolling_win_rate = trades_df['is_win'].rolling(window=window, min_periods=1).mean() * 100
+        trades_df["is_win"] = (trades_df["pnl_dollars"] > 0).astype(int)
+        rolling_win_rate = trades_df["is_win"].rolling(window=window, min_periods=1).mean() * 100
 
-        ax3.plot(trades_df['date'], rolling_win_rate, linewidth=2, color='purple')
-        ax3.axhline(y=50, color='gray', linestyle='--', alpha=0.5, label='50% Break-even')
-        ax3.axhline(y=self.metrics['win_rate']*100, color='green', linestyle='-',
-                   alpha=0.7, label=f'Avg: {self.metrics["win_rate"]*100:.1f}%')
-        ax3.fill_between(trades_df['date'], rolling_win_rate, 50, alpha=0.3,
-                        where=(rolling_win_rate >= 50), color='green', interpolate=True)
-        ax3.fill_between(trades_df['date'], rolling_win_rate, 50, alpha=0.3,
-                        where=(rolling_win_rate < 50), color='red', interpolate=True)
-        ax3.set_xlabel('Date', fontweight='bold')
-        ax3.set_ylabel('Win Rate (%)', fontweight='bold')
-        ax3.set_title(f'Rolling Win Rate ({window}-Trade Window)', fontweight='bold', pad=10)
-        ax3.legend(loc='best')
+        ax3.plot(trades_df["date"], rolling_win_rate, linewidth=2, color="purple")
+        ax3.axhline(y=50, color="gray", linestyle="--", alpha=0.5, label="50% Break-even")
+        ax3.axhline(
+            y=self.metrics["win_rate"] * 100,
+            color="green",
+            linestyle="-",
+            alpha=0.7,
+            label=f'Avg: {self.metrics["win_rate"]*100:.1f}%',
+        )
+        ax3.fill_between(
+            trades_df["date"],
+            rolling_win_rate,
+            50,
+            alpha=0.3,
+            where=(rolling_win_rate >= 50),
+            color="green",
+            interpolate=True,
+        )
+        ax3.fill_between(
+            trades_df["date"],
+            rolling_win_rate,
+            50,
+            alpha=0.3,
+            where=(rolling_win_rate < 50),
+            color="red",
+            interpolate=True,
+        )
+        ax3.set_xlabel("Date", fontweight="bold")
+        ax3.set_ylabel("Win Rate (%)", fontweight="bold")
+        ax3.set_title(f"Rolling Win Rate ({window}-Trade Window)", fontweight="bold", pad=10)
+        ax3.legend(loc="best")
         ax3.grid(True, alpha=0.3)
         ax3.set_ylim(0, 100)
 
         # Panel 4: Trade Size Distribution
         ax4 = axes[1, 1]
-        ax4.scatter(range(len(trades_df)), trades_df['pnl_pct'],
-                   c=trades_df['pnl_pct'], cmap='RdYlGn', s=100, alpha=0.6,
-                   edgecolors='black', linewidth=0.5)
-        ax4.axhline(y=0, color='black', linestyle='-', linewidth=1)
-        ax4.set_xlabel('Trade Number', fontweight='bold')
-        ax4.set_ylabel('P&L (%)', fontweight='bold')
-        ax4.set_title('Individual Trade Performance', fontweight='bold', pad=10)
+        ax4.scatter(
+            range(len(trades_df)),
+            trades_df["pnl_pct"],
+            c=trades_df["pnl_pct"],
+            cmap="RdYlGn",
+            s=100,
+            alpha=0.6,
+            edgecolors="black",
+            linewidth=0.5,
+        )
+        ax4.axhline(y=0, color="black", linestyle="-", linewidth=1)
+        ax4.set_xlabel("Trade Number", fontweight="bold")
+        ax4.set_ylabel("P&L (%)", fontweight="bold")
+        ax4.set_title("Individual Trade Performance", fontweight="bold", pad=10)
         ax4.grid(True, alpha=0.3)
 
-        plt.suptitle(f'Trade Analysis: {self.strategy.name}',
-                    fontsize=16, fontweight='bold', y=0.995)
+        plt.suptitle(
+            f"Trade Analysis: {self.strategy.name}", fontsize=16, fontweight="bold", y=0.995
+        )
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"[OK] Trade analysis plot saved to: {save_path}")
 
         plt.show()
 
-    def export_results(self, output_dir='backtesting_results'):
+    def export_results(self, output_dir="backtesting_results"):
         """
         Export backtest results to CSV files.
 
@@ -728,21 +818,24 @@ class BacktestEngine:
         output_path.mkdir(parents=True, exist_ok=True)
 
         # Save trades
-        trades_file = output_path / 'trades.csv'
+        trades_file = output_path / "trades.csv"
         self.trades_df.to_csv(trades_file, index=False)
         print(f"[OK] Trades saved to: {trades_file}")
 
         # Save equity curve
-        equity_file = output_path / 'equity_curve.csv'
+        equity_file = output_path / "equity_curve.csv"
         self.equity_df.to_csv(equity_file, index=False)
         print(f"[OK] Equity curve saved to: {equity_file}")
 
         # Save metrics
         import json
-        metrics_file = output_path / 'metrics.json'
-        with open(metrics_file, 'w') as f:
+
+        metrics_file = output_path / "metrics.json"
+        with open(metrics_file, "w") as f:
             # Convert numpy types to Python types for JSON serialization
-            metrics_json = {k: float(v) if isinstance(v, (np.integer, np.floating)) else v
-                          for k, v in self.metrics.items()}
+            metrics_json = {
+                k: float(v) if isinstance(v, (np.integer, np.floating)) else v
+                for k, v in self.metrics.items()
+            }
             json.dump(metrics_json, f, indent=4)
         print(f"[OK] Metrics saved to: {metrics_file}")

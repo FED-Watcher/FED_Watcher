@@ -23,34 +23,34 @@ def create_synthetic_test_data(num_events=5):
     """
     np.random.seed(42)
 
-    dates = pd.date_range('2024-01-01', periods=num_events, freq='30D')
+    dates = pd.date_range("2024-01-01", periods=num_events, freq="30D")
 
     # Create known scenarios for testing
     data = {
-        'Date': dates,
-        'Close': [5000, 5100, 5050, 5150, 5200],
-        'Volume': [1000000] * num_events,
-        'Volume_ratio_vs_5days': [1.0] * num_events,
-        'Announcement': [1] * num_events,
-        'hawkish_dovish_ratio': [1.2, 0.8, 1.1, 0.9, 1.3],
-        'net_sentiment_score': [0.15, -0.10, 0.05, -0.05, 0.20],
-        'negative_proportion': [0.2, 0.4, 0.3, 0.35, 0.25],
-        'neutral_proportion': [0.3, 0.3, 0.4, 0.35, 0.30],
-        'positive_proportion': [0.5, 0.3, 0.3, 0.30, 0.45],
-        'VIX_Close': [15, 18, 16, 17, 14],
-        'DXY_Close': [103, 104, 103.5, 104.5, 103],
-        'US02Y_Yield': [4.5, 4.6, 4.55, 4.65, 4.5],
-        'US10Y_Yield': [4.2, 4.3, 4.25, 4.35, 4.2],
-        'Yield_Curve_10Y_2Y': [-0.3, -0.3, -0.3, -0.3, -0.3],
-        'sentiment_label': ['positive', 'negative', 'neutral', 'neutral', 'positive'],
+        "Date": dates,
+        "Close": [5000, 5100, 5050, 5150, 5200],
+        "Volume": [1000000] * num_events,
+        "Volume_ratio_vs_5days": [1.0] * num_events,
+        "Announcement": [1] * num_events,
+        "hawkish_dovish_ratio": [1.2, 0.8, 1.1, 0.9, 1.3],
+        "net_sentiment_score": [0.15, -0.10, 0.05, -0.05, 0.20],
+        "negative_proportion": [0.2, 0.4, 0.3, 0.35, 0.25],
+        "neutral_proportion": [0.3, 0.3, 0.4, 0.35, 0.30],
+        "positive_proportion": [0.5, 0.3, 0.3, 0.30, 0.45],
+        "VIX_Close": [15, 18, 16, 17, 14],
+        "DXY_Close": [103, 104, 103.5, 104.5, 103],
+        "US02Y_Yield": [4.5, 4.6, 4.55, 4.65, 4.5],
+        "US10Y_Yield": [4.2, 4.3, 4.25, 4.35, 4.2],
+        "Yield_Curve_10Y_2Y": [-0.3, -0.3, -0.3, -0.3, -0.3],
+        "sentiment_label": ["positive", "negative", "neutral", "neutral", "positive"],
     }
 
     df = pd.DataFrame(data)
 
     # Calculate returns
-    df['future_close'] = df['Close'].shift(-1)
-    df['return'] = (df['future_close'] - df['Close']) / df['Close']
-    df['market_return'] = df['return'] * 100
+    df["future_close"] = df["Close"].shift(-1)
+    df["return"] = (df["future_close"] - df["Close"]) / df["Close"]
+    df["market_return"] = df["return"] * 100
 
     # Remove last row (no future return)
     df = df[:-1].copy()
@@ -168,7 +168,7 @@ def test_equity_tracking():
 
     initial_capital = 100000
     trades = [
-        (1, 2.0),   # Long, +2% return → +$2,000
+        (1, 2.0),  # Long, +2% return → +$2,000
         (-1, 1.0),  # Short, +1% return → -$1,020 (on $102,000)
         (1, -1.5),  # Long, -1.5% return → -$1,515 (on $100,980)
     ]

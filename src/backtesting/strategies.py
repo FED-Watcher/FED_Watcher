@@ -13,7 +13,7 @@ class Strategy(ABC):
     Abstract base class for trading strategies.
     """
 
-    def __init__(self, name='Strategy'):
+    def __init__(self, name="Strategy"):
         """
         Initialize strategy.
 
@@ -63,7 +63,7 @@ class BinaryStrategy(Strategy):
     - No neutral position
     """
 
-    def __init__(self, name='Binary Long/Short'):
+    def __init__(self, name="Binary Long/Short"):
         super().__init__(name)
 
     def get_position(self, prediction, **kwargs):
@@ -91,7 +91,7 @@ class BinaryLongOnlyStrategy(Strategy):
     - Down prediction (0) → Stay Flat (position = 0)
     """
 
-    def __init__(self, name='Binary Long-Only'):
+    def __init__(self, name="Binary Long-Only"):
         super().__init__(name)
 
     def get_position(self, prediction, **kwargs):
@@ -122,7 +122,7 @@ class MultiClassStrategy(Strategy):
     - Strong Drop (-2) → Full Short (position = -1.0)
     """
 
-    def __init__(self, name='Multi-Class Scaled', scale_positions=True):
+    def __init__(self, name="Multi-Class Scaled", scale_positions=True):
         """
         Initialize multi-class strategy.
 
@@ -146,13 +146,7 @@ class MultiClassStrategy(Strategy):
         """
         if self.scale_positions:
             # Scale by magnitude: -2→-1.0, -1→-0.5, 0→0, 1→0.5, 2→1.0
-            position_map = {
-                -2: -1.0,
-                -1: -0.5,
-                0: 0.0,
-                1: 0.5,
-                2: 1.0
-            }
+            position_map = {-2: -1.0, -1: -0.5, 0: 0.0, 1: 0.5, 2: 1.0}
             return position_map.get(prediction, 0.0)
         else:
             # Binary positions: negative→-1, zero→0, positive→+1
@@ -171,7 +165,7 @@ class ThresholdStrategy(Strategy):
     Useful for filtering low-confidence predictions.
     """
 
-    def __init__(self, name='Threshold Strategy', threshold=0.6, base_strategy=None):
+    def __init__(self, name="Threshold Strategy", threshold=0.6, base_strategy=None):
         """
         Initialize threshold strategy.
 
@@ -215,8 +209,9 @@ class KellyStrategy(Strategy):
     Adjusts position size based on expected value of the bet.
     """
 
-    def __init__(self, name='Kelly Criterion', win_rate=0.6, avg_win=1.0, avg_loss=1.0,
-                 kelly_fraction=0.5):
+    def __init__(
+        self, name="Kelly Criterion", win_rate=0.6, avg_win=1.0, avg_loss=1.0, kelly_fraction=0.5
+    ):
         """
         Initialize Kelly strategy.
 
@@ -256,7 +251,7 @@ class KellyStrategy(Strategy):
         position_size = kelly_fraction * self.kelly_fraction
 
         # Apply direction from prediction
-        if hasattr(prediction, '__iter__'):
+        if hasattr(prediction, "__iter__"):
             # Multi-class
             if prediction > 0:
                 return position_size

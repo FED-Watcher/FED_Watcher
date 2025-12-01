@@ -7,10 +7,4 @@ from .model_predictor import ModelPredictor
 from .backtest_engine import BacktestEngine
 from .strategies import Strategy, BinaryStrategy, MultiClassStrategy
 
-__all__ = [
-    'ModelPredictor',
-    'BacktestEngine',
-    'Strategy',
-    'BinaryStrategy',
-    'MultiClassStrategy'
-]
+__all__ = ["ModelPredictor", "BacktestEngine", "Strategy", "BinaryStrategy", "MultiClassStrategy"]
