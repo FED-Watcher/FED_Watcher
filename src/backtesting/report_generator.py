@@ -1,0 +1,429 @@
+"""
+HTML report generator for backtesting results.
+Creates comprehensive, professional reports with metrics and visualizations.
+"""
+
+from pathlib import Path
+from datetime import datetime
+import base64
+from io import BytesIO
+
+
+def generate_html_report(engine, output_dir, strategy_name=None):
+    """
+    Generate comprehensive HTML report of backtest results.
+
+    Args:
+        engine (BacktestEngine): Backtest engine with completed run
+        output_dir (str/Path): Directory to save report
+        strategy_name (str): Optional strategy name override
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if strategy_name is None:
+        strategy_name = engine.strategy.name
+
+    # Prepare data
+    metrics = engine.metrics
+    trades_df = engine.trades_df
+    equity_df = engine.equity_df
+
+    # Generate report
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Backtest Report - {strategy_name}</title>
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 20px;
+                color: #333;
+            }}
+
+            .container {{
+                max-width: 1400px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                overflow: hidden;
+            }}
+
+            .header {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 40px;
+                text-align: center;
+            }}
+
+            .header h1 {{
+                font-size: 2.5em;
+                margin-bottom: 10px;
+            }}
+
+            .header p {{
+                font-size: 1.1em;
+                opacity: 0.9;
+            }}
+
+            .content {{
+                padding: 40px;
+            }}
+
+            .section {{
+                margin-bottom: 40px;
+            }}
+
+            .section-title {{
+                font-size: 1.8em;
+                color: #667eea;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+                margin-bottom: 25px;
+            }}
+
+            .metrics-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }}
+
+            .metric-card {{
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: transform 0.3s;
+            }}
+
+            .metric-card:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            }}
+
+            .metric-label {{
+                font-size: 0.9em;
+                color: #666;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            }}
+
+            .metric-value {{
+                font-size: 2em;
+                font-weight: bold;
+                color: #333;
+            }}
+
+            .metric-value.positive {{
+                color: #27ae60;
+            }}
+
+            .metric-value.negative {{
+                color: #e74c3c;
+            }}
+
+            .image-container {{
+                margin: 20px 0;
+                text-align: center;
+            }}
+
+            .image-container img {{
+                max-width: 100%;
+                height: auto;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }}
+
+            .trades-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                font-size: 0.9em;
+            }}
+
+            .trades-table th {{
+                background: #667eea;
+                color: white;
+                padding: 12px;
+                text-align: left;
+                font-weight: 600;
+            }}
+
+            .trades-table td {{
+                padding: 10px 12px;
+                border-bottom: 1px solid #e0e0e0;
+            }}
+
+            .trades-table tr:hover {{
+                background: #f5f7fa;
+            }}
+
+            .summary-box {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+            }}
+
+            .summary-box h3 {{
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }}
+
+            .summary-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }}
+
+            .summary-item {{
+                background: rgba(255,255,255,0.1);
+                padding: 15px;
+                border-radius: 5px;
+            }}
+
+            .summary-item-label {{
+                font-size: 0.85em;
+                opacity: 0.9;
+                margin-bottom: 5px;
+            }}
+
+            .summary-item-value {{
+                font-size: 1.4em;
+                font-weight: bold;
+            }}
+
+            .footer {{
+                background: #f5f7fa;
+                padding: 20px 40px;
+                text-align: center;
+                color: #666;
+                font-size: 0.9em;
+            }}
+
+            .timestamp {{
+                color: #999;
+                font-style: italic;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Backtesting Report</h1>
+                <p>{strategy_name}</p>
+                <p class="timestamp">Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            </div>
+
+            <div class="content">
+                <!-- Executive Summary -->
+                <div class="section">
+                    <div class="summary-box">
+                        <h3>Executive Summary</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-item-label">Total Return</div>
+                                <div class="summary-item-value">{metrics['total_return_pct']:+.2f}%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Sharpe Ratio</div>
+                                <div class="summary-item-value">{metrics['sharpe_ratio']:.2f}</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Win Rate</div>
+                                <div class="summary-item-value">{metrics['win_rate']*100:.1f}%</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-item-label">Max Drawdown</div>
+                                <div class="summary-item-value">{metrics['max_drawdown_pct']:.2f}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="section">
+                    <h2 class="section-title">Performance Metrics</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Initial Capital</div>
+                            <div class="metric-value">${engine.initial_capital:,.0f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Final Equity</div>
+                            <div class="metric-value {'positive' if metrics['final_equity'] > engine.initial_capital else 'negative'}">${metrics['final_equity']:,.0f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Total P&L</div>
+                            <div class="metric-value {'positive' if metrics['total_pnl'] > 0 else 'negative'}">${metrics['total_pnl']:+,.0f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Total Trades</div>
+                            <div class="metric-value">{metrics['total_trades']}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Winning Trades</div>
+                            <div class="metric-value positive">{metrics['winning_trades']}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Losing Trades</div>
+                            <div class="metric-value negative">{metrics['losing_trades']}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Annualized Return</div>
+                            <div class="metric-value {'positive' if metrics['annualized_return_pct'] > 0 else 'negative'}">{metrics['annualized_return_pct']:+.2f}%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Sortino Ratio</div>
+                            <div class="metric-value">{metrics['sortino_ratio']:.2f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Calmar Ratio</div>
+                            <div class="metric-value">{metrics['calmar_ratio']:.2f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Profit Factor</div>
+                            <div class="metric-value">{metrics['profit_factor']:.2f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Expectancy</div>
+                            <div class="metric-value {'positive' if metrics['expectancy'] > 0 else 'negative'}">{metrics['expectancy']:+.2f}%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Recovery Factor</div>
+                            <div class="metric-value">{metrics['recovery_factor']:.2f}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Max Win Streak</div>
+                            <div class="metric-value positive">{metrics['max_win_streak']}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Max Loss Streak</div>
+                            <div class="metric-value negative">{metrics['max_loss_streak']}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Best Trade</div>
+                            <div class="metric-value positive">{metrics['best_trade_pct']:+.2f}%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Worst Trade</div>
+                            <div class="metric-value negative">{metrics['worst_trade_pct']:+.2f}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualizations -->
+                <div class="section">
+                    <h2 class="section-title">Equity Curve</h2>
+                    <div class="image-container">
+                        <img src="equity_curve.png" alt="Equity Curve">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Drawdown Analysis</h2>
+                    <div class="image-container">
+                        <img src="drawdown.png" alt="Drawdown">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Trade Analysis</h2>
+                    <div class="image-container">
+                        <img src="trade_analysis.png" alt="Trade Analysis">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Returns Distribution</h2>
+                    <div class="image-container">
+                        <img src="returns_distribution.png" alt="Returns Distribution">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Monthly Returns</h2>
+                    <div class="image-container">
+                        <img src="monthly_returns.png" alt="Monthly Returns">
+                    </div>
+                </div>
+
+                <!-- Trade Details -->
+                <div class="section">
+                    <h2 class="section-title">Trade History</h2>
+                    <table class="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Prediction</th>
+                                <th>Position</th>
+                                <th>Actual Return</th>
+                                <th>P&L (%)</th>
+                                <th>P&L ($)</th>
+                                <th>Equity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    """
+
+    # Add trade rows
+    for _, trade in trades_df.iterrows():
+        date_str = (
+            trade["date"].strftime("%Y-%m-%d")
+            if hasattr(trade["date"], "strftime")
+            else str(trade["date"])
+        )
+        pnl_class = (
+            "positive"
+            if trade["pnl_dollars"] > 0
+            else "negative" if trade["pnl_dollars"] < 0 else ""
+        )
+
+        html_content += f"""
+                            <tr>
+                                <td>{date_str}</td>
+                                <td>{trade['prediction_label']}</td>
+                                <td>{trade['position']:+.2f}</td>
+                                <td>{trade['actual_return_pct']:+.2f}%</td>
+                                <td class="{pnl_class}">{trade['pnl_pct']:+.2f}%</td>
+                                <td class="{pnl_class}">${trade['pnl_dollars']:+,.2f}</td>
+                                <td>${trade['equity']:,.2f}</td>
+                            </tr>
+        """
+
+    html_content += """
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>FED Watcher - Backtesting Engine</p>
+                <p>This report was automatically generated. All metrics assume zero transaction costs unless specified.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Save report
+    report_path = output_dir / "backtest_report.html"
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    print(f"[OK] HTML report saved to: {report_path}")
+    return report_path
