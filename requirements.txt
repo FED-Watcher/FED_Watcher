@@ -15,6 +15,7 @@ pandas
 numpy
 tqdm
 yfinance
+pandas-datareader
 black
 pytest
 pytest-cov
