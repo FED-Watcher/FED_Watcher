@@ -138,7 +138,7 @@ def enrich_dataset():
     print("\n" + "=" * 80)
     print("✅ Enrichment Pipeline Complete!")
     print("=" * 80)
-    print(f"\n📊 Final Dataset Preview (first 10 rows):")
+    print("\n📊 Final Dataset Preview (first 10 rows):")
     print(final_df.head(10).to_string())
 
     print("\n🔍 Final Dataset Info:")

@@ -61,7 +61,7 @@ def create_synthetic_test_data(num_events=5):
 def test_binary_strategy():
     """Test binary strategy with known outcomes."""
     print(f"\n{'='*60}")
-    print(f"TEST 1: Binary Strategy Logic")
+    print("TEST 1: Binary Strategy Logic")
     print(f"{'='*60}\n")
 
     # Create test data
@@ -81,14 +81,14 @@ def test_binary_strategy():
     pnl = strategy.calculate_pnl(position, actual_return)
 
     print(f"  Prediction:       {prediction} (Up)")
-    print(f"  Expected Position: +1.0 (Long)")
+    print("  Expected Position: +1.0 (Long)")
     print(f"  Actual Position:   {position}")
     print(f"  Actual Return:     {actual_return}%")
-    print(f"  Expected P&L:      +2.0%")
+    print("  Expected P&L:      +2.0%")
     print(f"  Calculated P&L:    {pnl}%")
     assert position == 1.0, "Position should be +1.0 for Up prediction"
     assert pnl == 2.0, "P&L should be +2.0%"
-    print(f"  ✓ PASSED\n")
+    print("  ✓ PASSED\n")
 
     print("Test Case 2: Down Prediction (0) with Positive Return")
     print("-" * 60)
@@ -97,15 +97,15 @@ def test_binary_strategy():
     position = strategy.get_position(prediction)
     pnl = strategy.calculate_pnl(position, actual_return)
 
-    print(f"  Prediction:       {prediction} (Down)")
-    print(f"  Expected Position: -1.0 (Short)")
+    print("  Prediction:       {prediction} (Down)")
+    print("  Expected Position: -1.0 (Short)")
     print(f"  Actual Position:   {position}")
     print(f"  Actual Return:     {actual_return}%")
-    print(f"  Expected P&L:      -2.0% (wrong direction)")
+    print("  Expected P&L:      -2.0% (wrong direction)")
     print(f"  Calculated P&L:    {pnl}%")
     assert position == -1.0, "Position should be -1.0 for Down prediction"
     assert pnl == -2.0, "P&L should be -2.0% (loss)"
-    print(f"  ✓ PASSED\n")
+    print("  ✓ PASSED\n")
 
     print("Test Case 3: Up Prediction (1) with Negative Return")
     print("-" * 60)
@@ -117,10 +117,10 @@ def test_binary_strategy():
     print(f"  Prediction:       {prediction} (Up)")
     print(f"  Position:          {position} (Long)")
     print(f"  Actual Return:     {actual_return}%")
-    print(f"  Expected P&L:      -1.5% (wrong direction)")
+    print("  Expected P&L:      -1.5% (wrong direction)")
     print(f"  Calculated P&L:    {pnl}%")
     assert pnl == -1.5, "P&L should be -1.5%"
-    print(f"  ✓ PASSED\n")
+    print("  ✓ PASSED\n")
 
     print("✓ All binary strategy tests passed!\n")
 
@@ -128,7 +128,7 @@ def test_binary_strategy():
 def test_multiclass_strategy():
     """Test multi-class strategy with scaled positions."""
     print(f"\n{'='*60}")
-    print(f"TEST 2: Multi-Class Strategy Logic")
+    print("TEST 2: Multi-Class Strategy Logic")
     print(f"{'='*60}\n")
 
     strategy = MultiClassStrategy(scale_positions=True)
@@ -155,7 +155,7 @@ def test_multiclass_strategy():
         print(f"  Calculated P&L:    {pnl}%")
 
         assert abs(pnl - expected_pnl) < 0.01, f"P&L mismatch: {pnl} != {expected_pnl}"
-        print(f"  ✓ PASSED\n")
+        print("  ✓ PASSED\n")
 
     print("✓ All multi-class strategy tests passed!\n")
 
@@ -163,7 +163,7 @@ def test_multiclass_strategy():
 def test_equity_tracking():
     """Test equity curve calculation."""
     print(f"\n{'='*60}")
-    print(f"TEST 3: Equity Tracking")
+    print("TEST 3: Equity Tracking")
     print(f"{'='*60}\n")
 
     initial_capital = 100000
@@ -192,8 +192,8 @@ def test_equity_tracking():
     print(f"Calculated Final Equity: ${equity:,.2f}")
 
     # Allow small floating point difference
-    assert abs(equity - expected_final) < 1.0, f"Equity tracking error"
-    print(f"✓ Equity tracking test passed!\n")
+    assert abs(equity - expected_final) < 1.0, "Equity tracking error"
+    print("✓ Equity tracking test passed!\n")
 
 
 def test_manual_calculation():
@@ -202,7 +202,7 @@ def test_manual_calculation():
     This matches the logic used in manual_verification().
     """
     print(f"\n{'='*60}")
-    print(f"TEST 4: Manual Calculation Walkthrough")
+    print("TEST 4: Manual Calculation Walkthrough")
     print(f"{'='*60}\n")
 
     print("Scenario: FOMC Event on 2024-03-20")
@@ -214,7 +214,7 @@ def test_manual_calculation():
     actual_return = (next_close - close_price) / close_price
     actual_return_pct = actual_return * 100
 
-    print(f"Market Data:")
+    print("Market Data:")
     print(f"  Close Price:      ${close_price:.2f}")
     print(f"  Next Close:       ${next_close:.2f}")
     print(f"  Return:           {actual_return_pct:+.2f}%\n")
@@ -224,12 +224,12 @@ def test_manual_calculation():
     strategy = BinaryStrategy()
     position = strategy.get_position(prediction)
 
-    print(f"Model Prediction:")
+    print("Model Prediction:")
     print(f"  Prediction:       {prediction} (Up)")
     print(f"  Position:         {position:+.2f} (Long)\n")
 
     # Calculate P&L two ways
-    print(f"P&L Calculation:")
+    print("P&L Calculation:")
 
     # Method 1: Using strategy
     pnl_strategy = strategy.calculate_pnl(position, actual_return_pct)
@@ -240,31 +240,31 @@ def test_manual_calculation():
     print(f"  Manual Method:    {pnl_manual:+.2f}%")
 
     # Method 3: Step-by-step
-    print(f"\n  Step-by-step:")
-    print(f"    Position × Return")
+    print("\n  Step-by-step:")
+    print("    Position × Return")
     print(f"    = {position} × {actual_return_pct:.4f}%")
     print(f"    = {pnl_manual:+.4f}%")
 
     assert abs(pnl_strategy - pnl_manual) < 0.0001, "Methods should match"
-    print(f"\n  ✓ Both methods match!")
+    print("\n  ✓ Both methods match!")
 
     # Convert to dollars
     portfolio_value = 100000
     pnl_dollars = portfolio_value * (pnl_manual / 100)
     new_equity = portfolio_value + pnl_dollars
 
-    print(f"\n  In Dollar Terms:")
+    print("\n  In Dollar Terms:")
     print(f"    Portfolio:        ${portfolio_value:,.2f}")
     print(f"    P&L:              ${pnl_dollars:+,.2f}")
     print(f"    New Equity:       ${new_equity:,.2f}")
 
-    print(f"\n✓ Manual calculation test passed!\n")
+    print("\n✓ Manual calculation test passed!\n")
 
 
 def main():
     """Run all tests."""
     print(f"\n{'#'*60}")
-    print(f"# BACKTESTING ENGINE - VERIFICATION TESTS")
+    print("# BACKTESTING ENGINE - VERIFICATION TESTS")
     print(f"{'#'*60}")
 
     try:
@@ -274,7 +274,7 @@ def main():
         test_manual_calculation()
 
         print(f"\n{'#'*60}")
-        print(f"# ALL TESTS PASSED ✓")
+        print("# ALL TESTS PASSED ✓")
         print(f"{'#'*60}\n")
 
     except AssertionError as e:
