@@ -43,7 +43,7 @@ def load_test_data(data_path=None, announcement_only=True):
         tuple: (train_data, test_data)
     """
     print(f"\n{'='*60}")
-    print(f"LOADING TEST DATA")
+    print("LOADING TEST DATA")
     print(f"{'='*60}")
 
     # Use default path if not provided
@@ -81,7 +81,7 @@ def load_test_data(data_path=None, announcement_only=True):
     # Calculate market return percentage for multi-class
     df["market_return"] = df["return"] * 100
 
-    print(f"[OK] Forward returns calculated")
+    print("[OK] Forward returns calculated")
 
     # Split into train/test (80/20)
     split_idx = int(len(df) * 0.8)
@@ -134,16 +134,16 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
 
         print(f"Event {idx + 1}: {event['Date'].strftime('%Y-%m-%d')}")
         print(f"{'-'*60}")
-        print(f"  Market Data:")
+        print("  Market Data:")
         print(f"    Close Price:        ${event['Close']:.2f}")
         print(f"    Next Close:         ${event['future_close']:.2f}")
         print(f"    Actual Return:      {actual_return_pct:+.2f}%")
-        print(f"\n  Model Prediction:")
+        print("\n  Model Prediction:")
         print(f"    Prediction:         {prediction} ({pred_label})")
         print(
             f"    Position Taken:     {position:+.2f} ({'Long' if position > 0 else 'Short' if position < 0 else 'Flat'})"
         )
-        print(f"\n  Trade Result:")
+        print("\n  Trade Result:")
         print(f"    P&L:                {pnl_pct:+.2f}%")
 
         # Manual calculation verification
@@ -155,12 +155,12 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
         )
 
         # Show some features
-        print(f"\n  Key Features:")
+        print("\n  Key Features:")
         print(f"    VIX:                {event['VIX_Close']:.2f}")
         print(f"    US10Y Yield:        {event['US10Y_Yield']:.2f}%")
         print(f"    Net Sentiment:      {event['net_sentiment_score']:.4f}")
 
-        print(f"\n")
+        print("\n")
 
 
 def run_binary_backtest(test_data, model_path=None, output_dir=None):
@@ -173,7 +173,7 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
         output_dir (str): Directory to save results
     """
     print(f"\n{'='*60}")
-    print(f"BINARY MODEL BACKTEST")
+    print("BINARY MODEL BACKTEST")
     print(f"{'='*60}\n")
 
     # Use default paths if not provided
@@ -229,7 +229,7 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
 
     # Generate all plots
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    print(f"\nGenerating visualizations...")
+    print("\nGenerating visualizations...")
     engine.plot_equity_curve(save_path=f"{output_dir}/equity_curve.png", show_trades=True)
     engine.plot_returns_distribution(save_path=f"{output_dir}/returns_distribution.png")
     engine.plot_drawdown(save_path=f"{output_dir}/drawdown.png")
@@ -240,7 +240,7 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
     engine.export_results(output_dir=output_dir)
 
     # Generate HTML report
-    print(f"\nGenerating HTML report...")
+    print("\nGenerating HTML report...")
     generate_html_report(engine, output_dir, strategy_name=strategy.name)
 
     return engine, results
@@ -260,7 +260,7 @@ def run_multiclass_backtest(
         output_dir (str): Directory to save results
     """
     print(f"\n{'='*60}")
-    print(f"MULTI-CLASS MODEL BACKTEST")
+    print("MULTI-CLASS MODEL BACKTEST")
     print(f"{'='*60}\n")
 
     # Use default paths if not provided
@@ -325,7 +325,7 @@ def run_multiclass_backtest(
 
     # Generate all plots
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    print(f"\nGenerating visualizations...")
+    print("\nGenerating visualizations...")
     engine.plot_equity_curve(save_path=f"{output_dir}/equity_curve.png", show_trades=True)
     engine.plot_returns_distribution(save_path=f"{output_dir}/returns_distribution.png")
     engine.plot_drawdown(save_path=f"{output_dir}/drawdown.png")
@@ -336,7 +336,7 @@ def run_multiclass_backtest(
     engine.export_results(output_dir=output_dir)
 
     # Generate HTML report
-    print(f"\nGenerating HTML report...")
+    print("\nGenerating HTML report...")
     generate_html_report(engine, output_dir, strategy_name=strategy.name)
 
     return engine, results
@@ -350,7 +350,7 @@ def compare_strategies(test_data):
         test_data (pd.DataFrame): Test dataset
     """
     print(f"\n{'='*60}")
-    print(f"STRATEGY COMPARISON")
+    print("STRATEGY COMPARISON")
     print(f"{'='*60}\n")
 
     strategies_to_test = []
@@ -440,8 +440,8 @@ def compare_strategies(test_data):
 def main():
     """Main execution function."""
     print(f"\n{'#'*60}")
-    print(f"# FED WATCHER - BACKTESTING ENGINE")
-    print(f"# Event-Driven Strategy Simulation")
+    print("# FED WATCHER - BACKTESTING ENGINE")
+    print("# Event-Driven Strategy Simulation")
     print(f"{'#'*60}\n")
 
     # Load test data (use default path)
@@ -464,16 +464,16 @@ def main():
         multi_engine, multi_results = run_multiclass_backtest(test_data)
     else:
         print(f"\n⚠ Multi-class model not found at {multi_model_path}")
-        print(f"  Skipping multi-class backtest.")
-        print(f"  Run the multi-class training script first:")
-        print(f"  python src/models/multi_classification/src/enhanced_multi_class_training.py\n")
+        print("  Skipping multi-class backtest.")
+        print("  Run the multi-class training script first:")
+        print("  python src/models/multi_classification/src/enhanced_multi_class_training.py\n")
 
     # Compare strategies
     compare_strategies(test_data)
 
     print(f"\n{'#'*60}")
-    print(f"# BACKTESTING COMPLETE")
-    print(f"# Results saved to src/backtesting/outputs/")
+    print("# BACKTESTING COMPLETE")
+    print("# Results saved to src/backtesting/outputs/")
     print(f"{'#'*60}\n")
 
 

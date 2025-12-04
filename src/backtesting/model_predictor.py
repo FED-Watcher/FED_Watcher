@@ -47,7 +47,7 @@ class ModelPredictor:
         print(f"  Model path: {self.model_path}")
         print(f"  Expected features: {len(self.feature_names)}")
         if self.scaler:
-            print(f"  Feature scaler: Loaded")
+            print("  Feature scaler: Loaded")
 
     def _load_model(self):
         """Load the trained model from disk."""
@@ -183,7 +183,7 @@ class ModelPredictor:
             probabilities = self.model.predict_proba(X)
             return probabilities
         else:
-            raise AttributeError(f"Model does not support probability predictions")
+            raise AttributeError("Model does not support probability predictions")
 
     def get_feature_importance(self):
         """
@@ -198,7 +198,7 @@ class ModelPredictor:
             ).sort_values("importance", ascending=False)
             return importance_df
         else:
-            raise AttributeError(f"Model does not provide feature importances")
+            raise AttributeError("Model does not provide feature importances")
 
     def get_prediction_label(self, prediction):
         """

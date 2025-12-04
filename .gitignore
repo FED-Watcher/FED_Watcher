@@ -5,3 +5,9 @@
 **/outputs
 
 **/MasterDataset_Enriched.csv
+
+**/models/binary_model/models
+
+/finbert_env
+
+/.pytest_cache
