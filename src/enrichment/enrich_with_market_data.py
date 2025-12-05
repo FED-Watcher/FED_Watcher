@@ -5,7 +5,7 @@ from datetime import datetime
 
 # --- Configuration ---
 MASTER_FILE_PATH = "MasterDataset_Final.csv"
-ENRICHED_OUTPUT_PATH = "MasterDataset_Enriched.csv"  # Saving as CSV is standard practice
+ENRICHED_OUTPUT_PATH = "data/MasterDataset_Enriched.csv"  # Canonical location in data/
 
 
 def enrich_dataset():

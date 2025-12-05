@@ -47,7 +47,11 @@ print("STEP 1: Loading Enriched Dataset")
 print("-" * 70)
 
 # Load the enriched dataset
-df = pd.read_csv("../data/MasterDataset_Enriched.csv")
+# Use Path to navigate to project root data directory
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
+df = pd.read_csv(PROJECT_ROOT / "data" / "MasterDataset_Enriched.csv")
 print(f"✓ Enriched dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
 
 # Identify new features
