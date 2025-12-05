@@ -48,7 +48,7 @@ def load_test_data(data_path=None, announcement_only=True):
 
     # Use default path if not provided
     if data_path is None:
-        data_path = PROJECT_ROOT / "MasterDataset_Enriched.csv"
+        data_path = PROJECT_ROOT / "data" / "MasterDataset_Enriched.csv"
     else:
         data_path = Path(data_path)
 
