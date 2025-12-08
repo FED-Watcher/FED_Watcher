@@ -15,7 +15,7 @@ sentence-transformers==5.1.2
 xgboost>=2.0.0
 
 # Data visualization
-matplotlib==3.10.7
+matplotlib==3.9.4
 seaborn==0.13.2
 
 # Data fetching
