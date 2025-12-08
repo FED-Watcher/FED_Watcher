@@ -124,6 +124,9 @@ jobs:
         echo "Verifying sklearn installation..."
         python -c "import sklearn; print(f'Sklearn version: {sklearn.__version__}')"
 
+    - name: Download required NLTK data
+      run: python -m nltk.downloader punkt punkt_tab
+
     - name: Run unit tests with coverage
       run: |
         pytest tests/unit/ \
