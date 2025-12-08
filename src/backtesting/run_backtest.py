@@ -10,15 +10,13 @@ This script demonstrates:
 
 import sys
 import pandas as pd
-import numpy as np
 from pathlib import Path
-import os
 
 # Get project root directory (2 levels up from this file)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
-# Add parent directory to path for imports
-sys.path.append(str(PROJECT_ROOT))
+# Add project root to path for imports (must be before src imports)
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.backtesting.model_predictor import ModelPredictor
 from src.backtesting.backtest_engine import BacktestEngine
@@ -26,7 +24,6 @@ from src.backtesting.strategies import (
     BinaryStrategy,
     BinaryLongOnlyStrategy,
     MultiClassStrategy,
-    ThresholdStrategy,
 )
 from src.backtesting.report_generator import generate_html_report
 
@@ -42,9 +39,9 @@ def load_test_data(data_path=None, announcement_only=True):
     Returns:
         tuple: (train_data, test_data)
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("LOADING TEST DATA")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Use default path if not provided
     if data_path is None:
@@ -92,7 +89,7 @@ def load_test_data(data_path=None, announcement_only=True):
     print(f"  Date range: {train_data['Date'].min()} to {train_data['Date'].max()}")
     print(f"Test set: {len(test_data)} events")
     print(f"  Date range: {test_data['Date'].min()} to {test_data['Date'].max()}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     return train_data, test_data
 
@@ -107,9 +104,9 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
         strategy (Strategy): Trading strategy
         num_events (int): Number of events to verify
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"MANUAL VERIFICATION: Testing {num_events} FOMC Events")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Select events to verify (first, middle, last)
     if len(test_data) >= num_events:
@@ -133,7 +130,7 @@ def manual_verification(test_data, predictor, strategy, num_events=3):
         pnl_pct = strategy.calculate_pnl(position, actual_return_pct)
 
         print(f"Event {idx + 1}: {event['Date'].strftime('%Y-%m-%d')}")
-        print(f"{'-'*60}")
+        print(f"{'-' * 60}")
         print("  Market Data:")
         print(f"    Close Price:        ${event['Close']:.2f}")
         print(f"    Next Close:         ${event['future_close']:.2f}")
@@ -172,9 +169,9 @@ def run_binary_backtest(test_data, model_path=None, output_dir=None):
         model_path (str): Path to trained binary model
         output_dir (str): Directory to save results
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("BINARY MODEL BACKTEST")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Use default paths if not provided
     if model_path is None:
@@ -259,9 +256,9 @@ def run_multiclass_backtest(
         metadata_path (str): Path to model metadata
         output_dir (str): Directory to save results
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("MULTI-CLASS MODEL BACKTEST")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Use default paths if not provided
     multi_base = PROJECT_ROOT / "src" / "models" / "multi_classification" / "src" / "outputs"
@@ -349,9 +346,9 @@ def compare_strategies(test_data):
     Args:
         test_data (pd.DataFrame): Test dataset
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("STRATEGY COMPARISON")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     strategies_to_test = []
 
@@ -439,10 +436,10 @@ def compare_strategies(test_data):
 
 def main():
     """Main execution function."""
-    print(f"\n{'#'*60}")
+    print(f"\n{'#' * 60}")
     print("# FED WATCHER - BACKTESTING ENGINE")
     print("# Event-Driven Strategy Simulation")
-    print(f"{'#'*60}\n")
+    print(f"{'#' * 60}\n")
 
     # Load test data (use default path)
     train_data, test_data = load_test_data(announcement_only=True)
@@ -471,10 +468,10 @@ def main():
     # Compare strategies
     compare_strategies(test_data)
 
-    print(f"\n{'#'*60}")
+    print(f"\n{'#' * 60}")
     print("# BACKTESTING COMPLETE")
     print("# Results saved to src/backtesting/outputs/")
-    print(f"{'#'*60}\n")
+    print(f"{'#' * 60}\n")
 
 
 if __name__ == "__main__":

@@ -27,11 +27,12 @@ def train_xgboost_model(X_train, y_train, params=None):
     if params is None:
         params = {
             "objective": "binary:logistic",
-            "max_depth": 6,
-            "learning_rate": 0.1,
+            "max_depth": 3,
+            "learning_rate": 0.01,
             "n_estimators": 100,
-            "random_state": 42,
+            "subsample": 0.8,
             "eval_metric": "logloss",
+            "random_state": 42,
         }
 
     print("\n" + "=" * 60)

@@ -6,7 +6,6 @@ Orchestrates the complete machine learning pipeline.
 import os
 from pathlib import Path
 import matplotlib.pyplot as plt
-import seaborn as sns
 from src.data_preparation import prepare_pipeline
 from src.model_training import (
     train_xgboost_model,
@@ -15,8 +14,7 @@ from src.model_training import (
     save_metrics,
     get_feature_importance,
 )
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve
 import pandas as pd
 import numpy as np
 
@@ -34,26 +32,31 @@ def main():
     print("Sprint: Predict market direction after Fed announcements")
     print("=" * 60 + "\n")
 
-    # Configuration
-    DATA_PATH = str((PROJECT_ROOT / "data" / "MasterDataset_Enriched.csv").resolve())
-    MODEL_PATH = "models/xgboost_binary_classifier.pkl"
-    METRICS_PATH = "logs/metrics.json"
-    OUTPUTS_DIR = Path("outputs")
+    # Configuration - use paths relative to this script's location
+    SCRIPT_DIR = Path(__file__).parent
+    DATA_PATH = PROJECT_ROOT / "data" / "MasterDataset_Enriched.csv"
+    MODEL_DIR = SCRIPT_DIR / "models"
+    LOGS_DIR = SCRIPT_DIR / "logs"
+    OUTPUTS_DIR = SCRIPT_DIR / "outputs"
+
+    MODEL_PATH = MODEL_DIR / "xgboost_binary_classifier.pkl"
+    METRICS_PATH = LOGS_DIR / "metrics.json"
 
     # Create necessary directories
-    os.makedirs("models", exist_ok=True)
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs(OUTPUTS_DIR, exist_ok=True)
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading data from: {DATA_PATH}")
+    print(f"Model output: {MODEL_PATH}")
     print(f"Project root: {PROJECT_ROOT.resolve()}\n")
 
     # ===== STEP 1: DATA PREPARATION =====
     X_train, X_test, y_train, y_test, feature_cols = prepare_pipeline(
-        filepath=DATA_PATH,
+        filepath=str(DATA_PATH),
         use_announcement_only=True,  # Focus on announcement days only
         horizon=1,  # Predict 24h ahead (1 day)
-        test_size=0.2,  # 80/20 train/test split
+        test_size=0.3,  # 80/20 train/test split
     )
 
     # ===== STEP 2: MODEL TRAINING =====
@@ -197,8 +200,8 @@ def main():
     print("\n" + "=" * 60 + "\n")
 
     # ===== STEP 6: SAVE RESULTS =====
-    save_model(model, MODEL_PATH)
-    save_metrics(metrics, METRICS_PATH)
+    save_model(model, str(MODEL_PATH))
+    save_metrics(metrics, str(METRICS_PATH))
 
     print("\n" + "=" * 60)
     print("PIPELINE COMPLETE!")

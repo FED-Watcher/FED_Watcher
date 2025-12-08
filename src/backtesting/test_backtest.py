@@ -9,8 +9,6 @@ This script creates synthetic test data to verify:
 
 import pandas as pd
 import numpy as np
-from model_predictor import ModelPredictor
-from backtest_engine import BacktestEngine
 from strategies import BinaryStrategy, MultiClassStrategy
 
 
@@ -60,15 +58,9 @@ def create_synthetic_test_data(num_events=5):
 
 def test_binary_strategy():
     """Test binary strategy with known outcomes."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("TEST 1: Binary Strategy Logic")
-    print(f"{'='*60}\n")
-
-    # Create test data
-    test_data = create_synthetic_test_data()
-
-    # Create mock predictions (alternating Up/Down)
-    mock_predictions = np.array([1, 0, 1, 0])  # Up, Down, Up, Down
+    print(f"{'=' * 60}\n")
 
     # Create strategy
     strategy = BinaryStrategy()
@@ -127,9 +119,9 @@ def test_binary_strategy():
 
 def test_multiclass_strategy():
     """Test multi-class strategy with scaled positions."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("TEST 2: Multi-Class Strategy Logic")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     strategy = MultiClassStrategy(scale_positions=True)
 
@@ -162,9 +154,9 @@ def test_multiclass_strategy():
 
 def test_equity_tracking():
     """Test equity curve calculation."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("TEST 3: Equity Tracking")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     initial_capital = 100000
     trades = [
@@ -201,9 +193,9 @@ def test_manual_calculation():
     Demonstrate manual P&L calculation for verification.
     This matches the logic used in manual_verification().
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("TEST 4: Manual Calculation Walkthrough")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     print("Scenario: FOMC Event on 2024-03-20")
     print("-" * 60)
@@ -263,9 +255,9 @@ def test_manual_calculation():
 
 def main():
     """Run all tests."""
-    print(f"\n{'#'*60}")
+    print(f"\n{'#' * 60}")
     print("# BACKTESTING ENGINE - VERIFICATION TESTS")
-    print(f"{'#'*60}")
+    print(f"{'#' * 60}")
 
     try:
         test_binary_strategy()
@@ -273,14 +265,14 @@ def main():
         test_equity_tracking()
         test_manual_calculation()
 
-        print(f"\n{'#'*60}")
+        print(f"\n{'#' * 60}")
         print("# ALL TESTS PASSED ✓")
-        print(f"{'#'*60}\n")
+        print(f"{'#' * 60}\n")
 
     except AssertionError as e:
-        print(f"\n{'!'*60}")
+        print(f"\n{'!' * 60}")
         print(f"! TEST FAILED: {e}")
-        print(f"{'!'*60}\n")
+        print(f"{'!' * 60}\n")
         raise
 
 

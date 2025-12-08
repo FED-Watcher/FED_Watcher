@@ -1,0 +1,72 @@
+{
+    "model_type": "Enhanced Gradient Boosting Multi-Class Classifier",
+    "features": [
+        "hawkish_dovish_ratio",
+        "net_sentiment_score",
+        "negative_proportion",
+        "neutral_proportion",
+        "positive_proportion",
+        "VIX_Close",
+        "DXY_Close",
+        "US02Y_Yield",
+        "US10Y_Yield",
+        "Yield_Curve_10Y_2Y",
+        "Volume_ratio_vs_5days"
+    ],
+    "feature_categories": {
+        "sentiment": [
+            "hawkish_dovish_ratio",
+            "net_sentiment_score",
+            "negative_proportion",
+            "neutral_proportion",
+            "positive_proportion"
+        ],
+        "macroeconomic": [
+            "VIX_Close",
+            "DXY_Close",
+            "US02Y_Yield",
+            "US10Y_Yield",
+            "Yield_Curve_10Y_2Y"
+        ],
+        "contextual": [
+            "Volume_ratio_vs_5days"
+        ]
+    },
+    "class_mapping": {
+        "-2": 0,
+        "-1": 1,
+        "0": 2,
+        "1": 3,
+        "2": 4
+    },
+    "inverse_mapping": {
+        "0": -2,
+        "1": -1,
+        "2": 0,
+        "3": 1,
+        "4": 2
+    },
+    "thresholds": {
+        "strong_rise": 7.5,
+        "modest_rise": 3.75,
+        "neutral_upper": 3.75,
+        "neutral_lower": -3.75,
+        "modest_drop": -3.75,
+        "strong_drop": -7.5
+    },
+    "train_size": 27,
+    "test_size": 12,
+    "train_date_range": "2020-09-16 00:00:00 to 2023-12-13 00:00:00",
+    "test_date_range": "2024-01-31 00:00:00 to 2025-06-18 00:00:00",
+    "hyperparameters": {
+        "n_estimators": 200,
+        "max_depth": 5,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "max_features": "sqrt",
+        "random_state": 42,
+        "verbose": 0
+    },
+    "test_accuracy": 0.5833333333333334,
+    "feature_scaling": "StandardScaler"
+}

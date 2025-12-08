@@ -5,8 +5,6 @@ Creates comprehensive, professional reports with metrics and visualizations.
 
 from pathlib import Path
 from datetime import datetime
-import base64
-from io import BytesIO
 
 
 def generate_html_report(engine, output_dir, strategy_name=None):
@@ -27,7 +25,6 @@ def generate_html_report(engine, output_dir, strategy_name=None):
     # Prepare data
     metrics = engine.metrics
     trades_df = engine.trades_df
-    equity_df = engine.equity_df
 
     # Generate report
     html_content = f"""
@@ -245,7 +242,7 @@ def generate_html_report(engine, output_dir, strategy_name=None):
                             </div>
                             <div class="summary-item">
                                 <div class="summary-item-label">Win Rate</div>
-                                <div class="summary-item-value">{metrics['win_rate']*100:.1f}%</div>
+                                <div class="summary-item-value">{metrics['win_rate'] * 100:.1f}%</div>
                             </div>
                             <div class="summary-item">
                                 <div class="summary-item-label">Max Drawdown</div>
