@@ -49,7 +49,7 @@ def create_binary_target(df, horizon=1):
     print("\nCreated binary target variable:")
     print(f"  Horizon: {horizon} day(s)")
     print(
-        f"  Target distribution: Up={df_clean['target'].sum()} ({df_clean['target'].mean()*100:.1f}%), Down={(df_clean['target']==0).sum()}"
+        f"  Target distribution: Up={df_clean['target'].sum()} ({df_clean['target'].mean() * 100:.1f}%), Down={(df_clean['target'] == 0).sum()}"
     )
 
     return df_clean
@@ -117,8 +117,8 @@ def split_data(df, feature_cols, test_size=0.2, random_state=42, shuffle_data=Tr
     )
 
     print("\nSplit data:")
-    print(f"  Train set: {len(X_train)} samples ({len(X_train)/len(df)*100:.1f}%)")
-    print(f"  Test set: {len(X_test)} samples ({len(X_test)/len(df)*100:.1f}%)")
+    print(f"  Train set: {len(X_train)} samples ({len(X_train) / len(df) * 100:.1f}%)")
+    print(f"  Test set: {len(X_test)} samples ({len(X_test) / len(df) * 100:.1f}%)")
 
     return X_train, X_test, y_train, y_test
 

@@ -5,10 +5,21 @@ import pandas as pd
 import numpy as np
 import torch
 import nltk
+from pathlib import Path
 from tqdm import tqdm
 from transformers import BertTokenizer, BertForSequenceClassification
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# Get project root directory (3 levels up from this file)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+# Default paths relative to project root
+DEFAULT_INPUT_DIR = PROJECT_ROOT / "data" / "processed" / "powell_speeches"
+DEFAULT_CHUNK_OUTPUT = PROJECT_ROOT / "data" / "sentiment_results" / "semantic_chunk_sentiments.csv"
+DEFAULT_DOC_OUTPUT = (
+    PROJECT_ROOT / "data" / "sentiment_results" / "semantic_document_sentiments.csv"
+)
 
 # --- Step 1: Setup and Model Loading ---
 
@@ -270,23 +281,28 @@ def main():
     parser.add_argument(
         "--input_dir",
         type=str,
-        required=True,
+        default=str(DEFAULT_INPUT_DIR),
         help="Path to the input directory containing speech CSV files.",
     )
     parser.add_argument(
         "--chunk_output",
         type=str,
-        default="sentiment_results/semantic_chunk_sentiments.csv",
+        default=str(DEFAULT_CHUNK_OUTPUT),
         help="Path to save the chunk-level output CSV.",
     )
     parser.add_argument(
         "--doc_output",
         type=str,
-        default="sentiment_results/semantic_document_sentiments.csv",
+        default=str(DEFAULT_DOC_OUTPUT),
         help="Path to save the document-level output CSV.",
     )
 
     args = parser.parse_args()
+
+    print(f"Input directory: {args.input_dir}")
+    print(f"Chunk output: {args.chunk_output}")
+    print(f"Document output: {args.doc_output}")
+
     process_speech_directory(args.input_dir, args.chunk_output, args.doc_output)
 
 
