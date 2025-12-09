@@ -88,10 +88,12 @@ FED Watcher follows a modular, pipeline-based architecture:
 └─────────────────┘
 ```
 
-**Key Dataset**: `MasterDataset_Enriched.csv`
+**Key Dataset**: `data/MasterDataset_Enriched.csv`
 - **1,761 daily observations** (2018-2024)
-- **35 Federal Reserve announcement days**
+- **40 Federal Reserve announcement days**
 - **20 features** including sentiment scores, macro indicators, and market data
+
+**Centralized Data Directory**: All data files are organized in the `data/` directory at the project root.
 
 ## Getting Started
 
@@ -100,6 +102,7 @@ FED Watcher follows a modular, pipeline-based architecture:
 - Python 3.9 or higher
 - Git
 - Virtual environment manager (`venv` or `conda`)
+- Kaggle account (for downloading the dataset)
 
 ### Installation
 
@@ -134,7 +137,33 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-4. **Verify installation:**
+4. **Download the dataset:**
+
+Download the FOMC Press Conference transcripts from Kaggle:
+
+**Dataset**: [Fed Press Release Text](https://www.kaggle.com/datasets/jonathanpaserman/fed-press-release-text)
+
+After downloading:
+- Extract the `.txt` files from the dataset
+- Place all transcript files (e.g., `FOMCpresconf20200916.txt`) into `data/raw_data/`
+
+```
+data/
+├── raw_data/                              # Raw FOMC transcript files
+│   ├── FOMCpresconf20200916.txt
+│   ├── FOMCpresconf20201105.txt
+│   └── ... (40 transcript files)
+├── processed/                             # Processed data outputs
+│   ├── powell_speeches_output/            # Extracted Powell speeches
+│   └── stock_data/                        # S&P 500 historical data
+├── sentiment_results/                     # NLP sentiment analysis outputs
+│   ├── semantic_chunk_sentiments.csv
+│   └── semantic_document_sentiments.csv
+├── MasterDataset_Final.csv                # Combined stock + sentiment data
+└── MasterDataset_Enriched.csv             # Final enriched dataset
+```
+
+5. **Verify installation:**
 
 ```bash
 # Run verification tests
@@ -146,68 +175,129 @@ python src/nlp/finbert_analyser.py --mode verify
 
 ## Usage
 
-### 1. Sentiment Analysis
+All commands should be run from the project root directory (`FED_Watcher/`).
 
-Extract and analyze sentiment from Federal Reserve Chair speeches using FinBERT.
+### 1. Data Extraction & Cleaning
 
-**Run the sentiment analysis pipeline:**
+Extract and clean Chair Powell's speeches from raw FOMC transcripts.
 
 ```bash
-python src/nlp/semantic_sentiment_analyser.py --input_dir data/processed/powell_speeches
+python src/cleaning/extract_powell_speeches.py
 ```
 
-**Arguments:**
-- `--input_dir`: (Required) Path to directory containing speech files
-- `--chunk_output`: (Optional) Path for chunk-level sentiment CSV (default: `sentiment_results/semantic_chunk_sentiments.csv`)
-- `--doc_output`: (Optional) Path for document-level sentiment CSV (default: `sentiment_results/semantic_document_sentiments.csv`)
+**Input:** `data/raw_data/*.txt` (40 FOMC transcript files from Kaggle)
 
-**Outputs:**
-- Chunk-level sentiments with hawkish/dovish scores
-- Document-level aggregated sentiment summaries
-- Net sentiment scores and proportions
+**Output:** `data/processed/powell_speeches_output/`
+- Individual speech CSVs per meeting
+- `all_powell_speeches_combined.csv` - Combined file with all speeches
 
-### 2. Market Data Enrichment
+---
 
-Enrich the dataset with macro-financial indicators.
+### 2. Sentiment Analysis
+
+Analyze sentiment from Powell speeches using FinBERT with semantic chunking.
+
+```bash
+python src/nlp/semantic_sentiment_analyser.py
+```
+
+**Input:** `data/processed/powell_speeches_output/`
+
+**Output:** `data/sentiment_results/`
+- `semantic_chunk_sentiments.csv` - Chunk-level sentiment scores
+- `semantic_document_sentiments.csv` - Document-level aggregated sentiments
+
+**Optional Arguments:**
+```bash
+python src/nlp/semantic_sentiment_analyser.py \
+    --input_dir data/processed/powell_speeches_output \
+    --chunk_output data/sentiment_results/semantic_chunk_sentiments.csv \
+    --doc_output data/sentiment_results/semantic_document_sentiments.csv
+```
+
+**Verify FinBERT Installation:**
+```bash
+python src/nlp/finbert_analyser.py --mode verify
+```
+
+---
+
+### 3. Stock Data Collection
+
+Download S&P 500 historical price data from Yahoo Finance.
+
+```bash
+python src/stock_data/get_stock_data.py
+```
+
+**Output:** `data/processed/stock_data/SP500_2018_2025_Clean.csv`
+
+---
+
+### 4. Master Dataset Creation
+
+Combine stock data with sentiment analysis results.
+
+```bash
+python src/enrichment/master_pipeline.py
+```
+
+**Input:**
+- `data/processed/stock_data/SP500_2018_2025_Clean.csv`
+- `data/sentiment_results/semantic_document_sentiments.csv`
+
+**Output:** `data/MasterDataset_Final.csv`
+- Merged stock prices with sentiment scores
+- Announcement day flags
+- Volume ratios and sentiment labels
+
+---
+
+### 5. Market Data Enrichment
+
+Enrich the dataset with macro-financial indicators from Yahoo Finance and FRED.
 
 ```bash
 python src/enrichment/enrich_with_market_data.py
 ```
 
-**Enrichment Features:**
-- **VIX** - Volatility Index (market fear gauge)
-- **DXY** - US Dollar Index
-- **US02Y_Yield** - 2-Year Treasury Yield
-- **US10Y_Yield** - 10-Year Treasury Yield
-- **Yield_Curve_10Y_2Y** - Yield curve spread
-- **Volume_ratio_vs_5days** - Volume relative to 5-day average
+**Input:** `data/MasterDataset_Final.csv`
 
-**Output**: `MasterDataset_Enriched.csv` with all features combined
+**Output:** `data/MasterDataset_Enriched.csv`
 
-### 3. Model Training
+**Enrichment Features Added:**
 
-Train both binary and multi-class classification models.
+| Feature | Description | Source |
+|---------|-------------|--------|
+| `VIX_Close` | Volatility Index (market fear gauge) | Yahoo Finance |
+| `DXY_Close` | US Dollar Index | Yahoo Finance |
+| `US02Y_Yield` | 2-Year Treasury Yield | FRED |
+| `US10Y_Yield` | 10-Year Treasury Yield | Yahoo Finance |
+| `Yield_Curve_10Y_2Y` | Yield curve spread (10Y - 2Y) | Calculated |
+
+---
+
+### 6. Model Training
 
 #### Binary Classification Model
 
 Predicts market direction (Up/Down) following Fed announcements.
 
 ```bash
-cd src/models/binary_model
-python main.py
+python src/models/binary_model/main.py
 ```
+
+**Input:** `data/MasterDataset_Enriched.csv`
+
+**Output:** `src/models/binary_model/`
+- `models/xgboost_binary_classifier.pkl` - Trained model
+- `logs/metrics.json` - Performance metrics
+- `outputs/` - Visualizations (confusion matrix, ROC curve, feature importance)
 
 **Model Details:**
 - Algorithm: XGBoost Binary Classifier
 - Features: 15 selected features from enriched dataset
-- Train/Test Split: 80/20 chronological (28/7 announcement days)
-- Output: `models/xgboost_binary_classifier.pkl`
-
-**Performance (Test Set):**
-- Accuracy: 57.1%
-- F1-Score: 66.7%
-- Precision: 100%
-- Recall: 50%
+- Train/Test Split: 80/20 chronological
 
 #### Multi-Class Classification Model
 
@@ -217,11 +307,18 @@ Predicts market movement magnitude (-2 to +2).
 python src/models/multi_classification/src/enhanced_multi_class_training.py
 ```
 
+**Input:** `data/MasterDataset_Enriched.csv`
+
+**Output:** `src/models/multi_classification/src/outputs/`
+- `enhanced_multi_class_model.pkl` - Trained model
+- `feature_scaler.pkl` - StandardScaler for feature normalization
+- `enhanced_model_metadata.json` - Model configuration and metrics
+- Visualizations (confusion matrix, feature importance)
+
 **Model Details:**
 - Algorithm: Gradient Boosting Classifier
 - Classes: Strong Drop (-2), Modest Drop (-1), Neutral (0), Modest Rise (+1), Strong Rise (+2)
 - Feature Scaling: StandardScaler normalization
-- Output: `outputs/enhanced_multi_class_model.pkl`, `feature_scaler.pkl`, `enhanced_model_metadata.json`
 
 **Top Important Features:**
 1. US02Y_Yield (23.4%)
@@ -230,25 +327,35 @@ python src/models/multi_classification/src/enhanced_multi_class_training.py
 4. Volume_ratio_vs_5days (10.0%)
 5. DXY_Close (9.5%)
 
-### 4. Backtesting
+---
+
+### 7. Backtesting
 
 Simulate trading strategies using trained models.
 
-**Quick Start:**
-
 ```bash
-# Run complete backtest with both models
 python src/backtesting/run_backtest.py
 ```
+
+**Input:**
+- `data/MasterDataset_Enriched.csv`
+- Trained models from Step 6
+
+**Output:** `src/backtesting/outputs/`
+- `binary/` - Binary model backtest results
+- `multiclass/` - Multi-class model backtest results
+- `strategy_comparison.csv` - Strategy performance comparison
 
 **Custom Backtest Example:**
 
 ```python
-from src.backtesting import ModelPredictor, BacktestEngine, BinaryStrategy
+from src.backtesting.model_predictor import ModelPredictor
+from src.backtesting.backtest_engine import BacktestEngine
+from src.backtesting.strategies import BinaryStrategy
 import pandas as pd
 
-# Load enriched dataset
-df = pd.read_csv('MasterDataset_Enriched.csv')
+# Load enriched dataset from centralized data directory
+df = pd.read_csv('data/MasterDataset_Enriched.csv')
 
 # Load trained model
 predictor = ModelPredictor(
@@ -295,7 +402,7 @@ engine.export_results(output_dir='backtesting_results/')
 
 **Output Files:**
 ```
-backtesting_results/
+src/backtesting/outputs/
 ├── binary/
 │   ├── trades.csv                  # Trade-by-trade results
 │   ├── equity_curve.csv            # Portfolio value over time
@@ -307,32 +414,67 @@ backtesting_results/
 ```
 
 **Important Assumptions:**
-⚠️ Backtest results assume:
+
+Backtest results assume:
 - Zero transaction costs (no commissions/fees)
 - No slippage (trades at exact closing price)
 - Perfect liquidity
 - 1-day holding period
 - Close-to-close returns
 
+---
+
+### 8. Run Tests
+
+Verify everything works correctly.
+
+```bash
+# Run all tests
+pytest -v
+
+# Run with coverage
+pytest -v --cov=src --cov-report=term-missing
+
+# Run specific test categories
+pytest tests/unit/ -v
+pytest tests/integration/ -v
+pytest tests/acceptance/ -v
+```
+
 ## Project Structure
 
 ```
 FED_Watcher/
+├── data/                             # Centralized data directory
+│   ├── raw_data/                     # Raw FOMC transcript files (.txt)
+│   ├── processed/                    # Processed outputs
+│   │   ├── powell_speeches_output/   # Extracted Powell speeches
+│   │   └── stock_data/               # S&P 500 historical data
+│   ├── sentiment_results/            # NLP sentiment outputs
+│   ├── MasterDataset_Final.csv       # Combined stock + sentiment
+│   └── MasterDataset_Enriched.csv    # Final enriched dataset
 ├── src/
 │   ├── nlp/                          # NLP & sentiment analysis
 │   │   ├── semantic_sentiment_analyser.py  # Main sentiment pipeline
 │   │   └── finbert_analyser.py            # FinBERT verification
 │   ├── enrichment/                   # Market data enrichment
-│   │   └── enrich_with_market_data.py     # Add VIX, DXY, yields
+│   │   ├── enrich_with_market_data.py     # Add VIX, DXY, yields
+│   │   └── master_pipeline.py             # Combine stock + sentiment
 │   ├── models/
 │   │   ├── binary_model/             # Binary classification
 │   │   │   ├── main.py               # Training pipeline
+│   │   │   ├── run_grid_search.py    # Hyperparameter tuning
 │   │   │   └── src/
 │   │   │       ├── data_preparation.py    # Data loading & preprocessing
-│   │   │       └── model_training.py      # XGBoost training
+│   │   │       ├── model_training.py      # XGBoost training
+│   │   │       └── visualization.py       # Model visualizations
 │   │   └── multi_classification/     # Multi-class classification
+│   │       ├── run_grid_search.py    # Hyperparameter tuning
 │   │       └── src/
-│   │           └── enhanced_multi_class_training.py
+│   │           ├── enhanced_multi_class_training.py
+│   │           ├── data_preparation.py
+│   │           ├── model_training.py
+│   │           └── visualization.py
 │   ├── backtesting/                  # Backtesting engine
 │   │   ├── model_predictor.py        # Unified model interface
 │   │   ├── strategies.py             # Trading strategies
@@ -340,13 +482,14 @@ FED_Watcher/
 │   │   ├── report_generator.py       # Performance reporting
 │   │   └── run_backtest.py           # Main execution script
 │   ├── stock_data/                   # Stock data utilities
+│   │   └── get_stock_data.py         # Download S&P 500 data
 │   └── cleaning/                     # Data cleaning scripts
+│       └── extract_powell_speeches.py # Extract Powell speeches
 ├── tests/
 │   ├── unit/                         # Unit tests
 │   ├── integration/                  # Integration tests
 │   └── acceptance/                   # Acceptance tests
-├── docs/                             # Documentation
-├── MasterDataset_Enriched.csv        # Main dataset (1,761 rows, 35 events)
+├── docs/                             # documentation
 ├── requirements.txt                  # Production dependencies
 ├── requirements-dev.txt              # Development dependencies
 ├── pytest.ini                        # Pytest configuration
@@ -371,7 +514,7 @@ FED_Watcher/
 
 **Dataset Split:**
 - Training: 28 announcement days (2020-09 to 2024-01)
-- Testing: 7 announcement days (2024-03 to 2024-12)
+- Testing: 12 announcement days (2024-03 to 2024-12)
 
 **Performance:**
 
@@ -397,7 +540,7 @@ FED_Watcher/
 
 ## Testing
 
-FED Watcher includes a comprehensive test suite with 80%+ code coverage.
+FED Watcher includes a comprehensive test suite with 95%+ code coverage.
 
 ### Running Tests
 
@@ -541,7 +684,7 @@ Automated GitHub Actions pipeline runs on every push and pull request to `main` 
 All stages must pass for PR approval:
 - Code formatting (Black)
 - Linting score ≥ 7.0 (Pylint)
-- Code coverage ≥ 10%
+- Code coverage ≥ 95%
 - Zero critical security vulnerabilities
 - All tests passing
 
@@ -555,7 +698,7 @@ We welcome contributions! Please follow these guidelines:
 
 1. **Fork the repository** and create a feature branch from `develop`
 2. **Follow GitFlow workflow** as described in `DEVELOPMENT_GUIDELINES.md`
-3. **Write tests** for new features (maintain ≥10% coverage)
+3. **Write tests** for new features (maintain ≥95% coverage)
 4. **Follow code style** (Black formatting, Flake8 compliant)
 5. **Use Conventional Commits** for commit messages
 6. **Create Pull Request** targeting `develop` branch
@@ -590,9 +733,11 @@ This project uses **FinBERT** for financial sentiment analysis.
 
 ### Data Sources
 
-- **Federal Reserve Speeches**: Public announcements from the Federal Reserve Chair
+- **FOMC Press Conference Transcripts**: [Kaggle Dataset](https://www.kaggle.com/datasets/jonathanpaserman/fed-press-release-text) by Jonathan Paserman
+  - Contains transcripts of Federal Reserve Chair press conferences
+  - Required input for the sentiment analysis pipeline
 - **S&P 500 Data**: Historical market data via `yfinance`
-- **Market Indicators**: VIX, DXY, Treasury yields via `pandas-datareader`
+- **Market Indicators**: VIX, DXY, Treasury yields via Yahoo Finance and FRED (`pandas-datareader`)
 
 ## License
 
@@ -600,6 +745,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
+- **Jonathan Paserman** for the [Fed Press Release Text dataset](https://www.kaggle.com/datasets/jonathanpaserman/fed-press-release-text) on Kaggle
 - **FinBERT** by ProsusAI for financial sentiment analysis
 - **Federal Reserve** for public speech transcripts
 - **yfinance** and **pandas-datareader** for market data access
@@ -620,17 +766,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - ✅ Binary classification model (Up/Down prediction)
 - ✅ Multi-class classification model (5-class magnitude prediction)
 - ✅ Event-driven backtesting engine with 5 trading strategies
-- ✅ Comprehensive test suite (Unit, Integration, Acceptance)
+- ✅ Comprehensive test suite (Unit, Integration, Acceptance) - 95%+ coverage
 - ✅ GitHub Actions CI/CD pipeline
 - ✅ GitFlow branching workflow
 - ✅ Production-grade code quality standards
+- ✅ Centralized data directory structure
 
 **Dataset:**
 - 1,761 daily observations (2018-2024)
-- 35 Federal Reserve announcement events
+- 40 Federal Reserve announcement events
 - 20 features (sentiment + macro + market data)
 
 **Performance:**
-- Binary Model: 57.1% test accuracy
+- Binary Model: 83.3% test accuracy
 - Multi-Class Model: Enhanced feature engineering with StandardScaler
 - Backtesting: Multiple strategies with full P&L tracking
+- Test Coverage: 95.19% (300 tests passing)

@@ -10,7 +10,6 @@ The engine simulates a trading strategy by:
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -61,16 +60,16 @@ class BacktestEngine:
         self.equity_curve = []
         self.metrics = {}
 
-        print(f"\n{'='*60}")
-        print(f"BACKTESTING ENGINE INITIALIZED")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print("BACKTESTING ENGINE INITIALIZED")
+        print(f"{'=' * 60}")
         print(f"Model Type: {self.predictor.model_type}")
         print(f"Strategy: {self.strategy.name}")
         print(f"Initial Capital: ${self.initial_capital:,.2f}")
         print(f"Holding Period: {self.horizon} day(s)")
         print(f"Commission: {self.commission_pct}%")
         print(f"Slippage: {self.slippage_pct}%")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
     def run(self, test_data, date_col="Date", return_col="return", verbose=True):
         """
@@ -87,7 +86,7 @@ class BacktestEngine:
         """
         if verbose:
             print(f"Starting backtest on {len(test_data)} events...")
-            print(f"{'='*60}\n")
+            print(f"{'=' * 60}\n")
 
         # Reset results
         self.trades = []
@@ -182,9 +181,9 @@ class BacktestEngine:
         self._calculate_metrics()
 
         if verbose:
-            print(f"\n{'='*60}")
-            print(f"BACKTEST COMPLETE")
-            print(f"{'='*60}\n")
+            print(f"\n{'=' * 60}")
+            print("BACKTEST COMPLETE")
+            print(f"{'=' * 60}\n")
             self.print_summary()
 
         return self.trades_df
@@ -395,22 +394,22 @@ class BacktestEngine:
         m = self.metrics
 
         print("PERFORMANCE SUMMARY")
-        print(f"{'-'*60}")
+        print(f"{'-' * 60}")
         print(f"Total Trades:          {m['total_trades']}")
-        print(f"Winning Trades:        {m['winning_trades']} ({m['win_rate']*100:.1f}%)")
-        print(f"Losing Trades:         {m['losing_trades']} ({m['loss_rate']*100:.1f}%)")
+        print(f"Winning Trades:        {m['winning_trades']} ({m['win_rate'] * 100:.1f}%)")
+        print(f"Losing Trades:         {m['losing_trades']} ({m['loss_rate'] * 100:.1f}%)")
         print(f"Neutral Trades:        {m['neutral_trades']}")
         print(f"Max Win Streak:        {m['max_win_streak']}")
         print(f"Max Loss Streak:       {m['max_loss_streak']}")
         print("\nRETURNS")
-        print(f"{'-'*60}")
+        print(f"{'-' * 60}")
         print(f"Initial Capital:       ${self.initial_capital:,.2f}")
         print(f"Final Equity:          ${m['final_equity']:,.2f}")
         print(f"Total P&L:             ${m['total_pnl']:+,.2f}")
         print(f"Total Return:          {m['total_return_pct']:+.2f}%")
         print(f"Annualized Return:     {m['annualized_return_pct']:+.2f}%")
         print("\nPER-TRADE STATISTICS")
-        print(f"{'-'*60}")
+        print(f"{'-' * 60}")
         print(f"Average Win:           {m['avg_win_pct']:+.2f}%")
         print(f"Average Loss:          {m['avg_loss_pct']:+.2f}%")
         print(f"Best Trade:            {m['best_trade_pct']:+.2f}%")
@@ -418,18 +417,18 @@ class BacktestEngine:
         print(f"Expectancy:            {m['expectancy']:+.2f}%")
         print(f"Profit Factor:         {m['profit_factor']:.2f}")
         print("\nRISK METRICS")
-        print(f"{'-'*60}")
+        print(f"{'-' * 60}")
         print(f"Sharpe Ratio:          {m['sharpe_ratio']:.2f}")
         print(f"Sortino Ratio:         {m['sortino_ratio']:.2f}")
         print(f"Calmar Ratio:          {m['calmar_ratio']:.2f}")
         print(f"Max Drawdown:          {m['max_drawdown_pct']:.2f}%")
         print(f"Recovery Factor:       {m['recovery_factor']:.2f}")
         print("\nCOSTS")
-        print(f"{'-'*60}")
+        print(f"{'-' * 60}")
         print(f"Commission Rate:       {self.commission_pct}%")
         print(f"Slippage Rate:         {self.slippage_pct}%")
         print(f"Total Commission:      {m['total_commission_cost']:.2f}%")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
     def plot_equity_curve(self, save_path=None, show_trades=True):
         """
@@ -751,7 +750,7 @@ class BacktestEngine:
             color="green",
             linestyle="-",
             alpha=0.7,
-            label=f'Avg: {self.metrics["win_rate"]*100:.1f}%',
+            label=f'Avg: {self.metrics["win_rate"] * 100:.1f}%',
         )
         ax3.fill_between(
             trades_df["date"],

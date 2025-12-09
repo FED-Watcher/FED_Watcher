@@ -4,7 +4,6 @@ Defines how predictions are converted to positions and P&L.
 """
 
 from abc import ABC, abstractmethod
-import pandas as pd
 import numpy as np
 
 

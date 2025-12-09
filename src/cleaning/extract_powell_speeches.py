@@ -1,7 +1,14 @@
 import re
 import csv
 import os
-from datetime import datetime
+from pathlib import Path
+
+# Get project root directory (3 levels up from this file)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+# Default paths relative to project root
+DEFAULT_INPUT_DIR = PROJECT_ROOT / "data" / "raw_data"
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data" / "processed" / "powell_speeches"
 
 
 def extract_meeting_date(filename):
@@ -243,7 +250,7 @@ def process_directory(input_dir, output_dir=None):
         combined_output = "all_powell_speeches_combined.csv"
 
     print("\n" + "=" * 60)
-    print(f"Creating combined file with all speeches...")
+    print("Creating combined file with all speeches...")
     save_to_csv(all_speeches, combined_output)
     print(f"\nTotal speeches across all files: {len(all_speeches)}")
     print(f"Output directory: {output_dir or 'current directory'}")
@@ -251,16 +258,20 @@ def process_directory(input_dir, output_dir=None):
 
 def main():
     """
-    Main function - processes all .txt files in current directory.
+    Main function - processes all .txt files from data/raw_data directory.
+    Outputs to data/processed/powell_speeches directory.
     """
     print("=" * 60)
     print("FOMC Chair Powell Speech Extractor")
     print("Enhanced version with improved text cleaning")
     print("=" * 60)
 
-    # Process all files in current directory
-    input_directory = "."  # Current directory
-    output_directory = "powell_speeches_output"  # Output folder
+    # Use project-relative paths
+    input_directory = str(DEFAULT_INPUT_DIR)
+    output_directory = str(DEFAULT_OUTPUT_DIR)
+
+    print(f"Input directory: {input_directory}")
+    print(f"Output directory: {output_directory}")
 
     process_directory(input_directory, output_directory)
 

@@ -140,7 +140,7 @@ def evaluate_performance(labeled_csv_path, tokenizer, model, device):
     accuracy = accuracy_score(true_labels, predictions)
     report = classification_report(true_labels, predictions)
 
-    print(f"\nPerformance Evaluation Report:")
+    print("\nPerformance Evaluation Report:")
     print(f"Accuracy: {accuracy:.4f}")
     print("\nClassification Report:")
     print(report)

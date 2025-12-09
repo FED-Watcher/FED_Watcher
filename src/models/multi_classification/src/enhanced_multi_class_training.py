@@ -9,11 +9,8 @@ Author: ML Engineering Team
 Project: FED Watcher - Enhanced Version
 """
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import TimeSeriesSplit
+from sklearn.utils.class_weight import compute_sample_weight
+from pathlib import Path
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (
     confusion_matrix,
@@ -22,9 +19,15 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
 )
 from sklearn.ensemble import GradientBoostingClassifier
+from matplotlib.patches import Patch
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import pickle
 import warnings
 import os
+import json
 
 warnings.filterwarnings("ignore")
 
@@ -48,7 +51,6 @@ print("-" * 70)
 
 # Load the enriched dataset
 # Use Path to navigate to project root data directory
-from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
 df = pd.read_csv(PROJECT_ROOT / "data" / "MasterDataset_Enriched.csv")
@@ -102,12 +104,12 @@ print(f"✓ Calculated 24-hour forward returns for {len(df_announcements)} event
 
 # Use the same thresholds as before for consistency
 THRESHOLDS = {
-    "strong_rise": 1.5,
-    "modest_rise": 0.5,
-    "neutral_upper": 0.5,
-    "neutral_lower": -0.5,
-    "modest_drop": -1.5,
-    "strong_drop": -1.5,
+    "strong_rise": 7.5,
+    "modest_rise": 3.75,
+    "neutral_upper": 3.75,
+    "neutral_lower": -3.75,
+    "modest_drop": -3.75,
+    "strong_drop": -7.5,
 }
 
 
@@ -129,7 +131,7 @@ df_announcements["market_magnitude_class"] = df_announcements["market_return"].a
 )
 
 # Check class distribution
-print("/n--- Class Distribution ---")
+print("\n--- Class Distribution ---")
 class_dist = df_announcements["market_magnitude_class"].value_counts().sort_index()
 print(class_dist)
 print()
@@ -159,19 +161,19 @@ CONTEXTUAL_FEATURES = ["Volume_ratio_vs_5days"]
 FEATURES = SENTIMENT_FEATURES + MACRO_FEATURES + CONTEXTUAL_FEATURES
 
 print("Feature Set Composition:")
-print(f"/n1. Sentiment Features ({len(SENTIMENT_FEATURES)}):")
+print(f"\n1. Sentiment Features ({len(SENTIMENT_FEATURES)}):")
 for i, feat in enumerate(SENTIMENT_FEATURES, 1):
     print(f"   {i}. {feat}")
 
-print(f"/n2. Macroeconomic Features ({len(MACRO_FEATURES)}) - NEW:")
+print(f"\n2. Macroeconomic Features ({len(MACRO_FEATURES)}) - NEW:")
 for i, feat in enumerate(MACRO_FEATURES, 1):
     print(f"   {i}. {feat}")
 
-print(f"/n3. Contextual Features ({len(CONTEXTUAL_FEATURES)}):")
+print(f"\n3. Contextual Features ({len(CONTEXTUAL_FEATURES)}):")
 for i, feat in enumerate(CONTEXTUAL_FEATURES, 1):
     print(f"   {i}. {feat}")
 
-print(f"/nTotal Features: {len(FEATURES)}")
+print(f"\nTotal Features: {len(FEATURES)}")
 print()
 
 # Check for missing values
@@ -179,7 +181,7 @@ missing_check = df_announcements[FEATURES + ["market_magnitude_class"]].isnull()
 if missing_check.sum() > 0:
     print("⚠ Missing values detected:")
     print(missing_check[missing_check > 0])
-    print("/nRemoving rows with missing values...")
+    print("\nRemoving rows with missing values...")
     df_announcements = df_announcements.dropna(subset=FEATURES + ["market_magnitude_class"])
     print(f"✓ Dataset size after removing missing values: {len(df_announcements)} events")
 else:
@@ -216,7 +218,7 @@ plt.savefig("./outputs/enhanced_feature_correlation.png", dpi=300, bbox_inches="
 print("✓ Feature correlation analysis saved")
 
 # Analyze macro features on announcement days
-print("/nMacroeconomic Feature Statistics (Announcement Days):")
+print("\nMacroeconomic Feature Statistics (Announcement Days):")
 print(df_announcements[MACRO_FEATURES].describe().round(2))
 print()
 
@@ -229,17 +231,17 @@ print("-" * 70)
 # Sort by date
 df_announcements = df_announcements.sort_values("Date").reset_index(drop=True)
 
-# Calculate split point (80-20 split)
-split_index = int(len(df_announcements) * 0.8)
+# Calculate split point (70-30 split)
+split_index = int(len(df_announcements) * 0.7)
 
 train_data = df_announcements.iloc[:split_index].copy()
 test_data = df_announcements.iloc[split_index:].copy()
 
-print(f"Training Set:")
+print("Training Set:")
 print(f"  Size: {len(train_data)} events")
 print(f"  Date Range: {train_data['Date'].min()} to {train_data['Date'].max()}")
 
-print(f"/nTest Set:")
+print("\nTest Set:")
 print(f"  Size: {len(test_data)} events")
 print(f"  Date Range: {test_data['Date'].min()} to {test_data['Date'].max()}")
 print()
@@ -259,7 +261,7 @@ X_test = scaler.transform(X_test_raw)
 print("✓ Feature scaling complete")
 print()
 
-print(f"Feature matrices created:")
+print("Feature matrices created:")
 print(f"  X_train shape: {X_train.shape}")
 print(f"  X_test shape: {X_test.shape}")
 print()
@@ -271,8 +273,6 @@ print("STEP 6: Training Enhanced Multi-Class Model")
 print("-" * 70)
 
 # Calculate class weights
-from sklearn.utils.class_weight import compute_sample_weight
-
 sample_weights = compute_sample_weight("balanced", y_train)
 
 print("Model Configuration:")
@@ -285,10 +285,10 @@ print()
 # FED-18.2: Optimized hyperparameters for improved prediction accuracy
 # Based on grid search results from cross-validation experiments
 model_params = {
-    "n_estimators": 200,  # Increased for better ensemble performance
-    "max_depth": 6,  # Deeper trees for complex patterns
-    "learning_rate": 0.05,  # Slower learning for better generalization
-    "subsample": 0.85,  # Higher sampling ratio
+    "n_estimators": 200,  # Optimized
+    "max_depth": 5,  # Optimized
+    "learning_rate": 0.05,  # Optimized (Slower learning)
+    "subsample": 0.8,  # Optimized
     "max_features": "sqrt",
     "random_state": RANDOM_STATE,
     "verbose": 0,
@@ -325,7 +325,7 @@ y_pred = np.array([inverse_mapping[y] for y in y_pred_mapped])
 
 # Calculate accuracy
 accuracy = accuracy_score(y_test, y_pred)
-print(f"Overall Accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)")
+print(f"Overall Accuracy: {accuracy:.4f} ({accuracy * 100:.2f}%)")
 print()
 
 # Generate confusion matrix
@@ -363,17 +363,17 @@ print(report)
 
 # Save report
 with open("./outputs/enhanced_classification_report.txt", "w") as f:
-    f.write("Enhanced Multi-Class Classification Model - Evaluation Report/n")
-    f.write("=" * 70 + "/n/n")
+    f.write("Enhanced Multi-Class Classification Model - Evaluation Report\n")
+    f.write("=" * 70 + "\n\n")
     f.write(f"Features Used: {len(FEATURES)}/n")
-    f.write(f"  - Sentiment: {len(SENTIMENT_FEATURES)}/n")
-    f.write(f"  - Macroeconomic: {len(MACRO_FEATURES)}/n")
-    f.write(f"  - Contextual: {len(CONTEXTUAL_FEATURES)}/n/n")
-    f.write(f"Test Set Size: {len(y_test)} events/n")
-    f.write(f"Overall Accuracy: {accuracy:.4f}/n/n")
-    f.write("Confusion Matrix:/n")
-    f.write(str(cm) + "/n/n")
-    f.write("Per-Class Performance:/n")
+    f.write(f"  - Sentiment: {len(SENTIMENT_FEATURES)}\n")
+    f.write(f"  - Macroeconomic: {len(MACRO_FEATURES)}\n")
+    f.write(f"  - Contextual: {len(CONTEXTUAL_FEATURES)}\n\n")
+    f.write(f"Test Set Size: {len(y_test)} events\n")
+    f.write(f"Overall Accuracy: {accuracy:.4f}\n\n")
+    f.write("Confusion Matrix:\n")
+    f.write(str(cm) + "\n\n")
+    f.write("Per-Class Performance:\n")
     f.write(report)
 
 print("✓ Enhanced classification report saved")
@@ -416,8 +416,6 @@ ax1.set_title("Feature Importance - Enhanced Model", fontsize=14, fontweight="bo
 ax1.grid(True, alpha=0.3, axis="x")
 
 # Add legend
-from matplotlib.patches import Patch
-
 legend_elements = [
     Patch(facecolor="steelblue", alpha=0.8, label="Sentiment"),
     Patch(facecolor="darkgreen", alpha=0.8, label="Macroeconomic"),
@@ -468,17 +466,15 @@ print("-" * 70)
 model_filename = "./outputs/enhanced_multi_class_model.pkl"
 with open(model_filename, "wb") as f:
     pickle.dump(model, f)
-print(f"✓ Enhanced model saved")
+print("✓ Enhanced model saved")
 
 # Save scaler
 scaler_filename = "./outputs/feature_scaler.pkl"
 with open(scaler_filename, "wb") as f:
     pickle.dump(scaler, f)
-print(f"✓ Feature scaler saved")
+print("✓ Feature scaler saved")
 
 # Save metadata
-import json
-
 metadata = {
     "model_type": "Enhanced Gradient Boosting Multi-Class Classifier",
     "features": FEATURES,
@@ -546,7 +542,7 @@ predictions_df["correct_prediction"] = (
 # Save
 predictions_filename = "./outputs/enhanced_test_predictions.csv"
 predictions_df.to_csv(predictions_filename, index=False)
-print(f"✓ Enhanced predictions saved")
+print("✓ Enhanced predictions saved")
 print()
 
 # ============================================================================
@@ -561,14 +557,14 @@ try:
     baseline_accuracy = (baseline_preds["actual_class"] == baseline_preds["predicted_class"]).mean()
 
     print("Performance Comparison:")
-    print(f"  Baseline Model Accuracy:  {baseline_accuracy:.4f} ({baseline_accuracy*100:.2f}%)")
+    print(f"  Baseline Model Accuracy:  {baseline_accuracy:.4f} ({baseline_accuracy * 100:.2f}%)")
     print(f"  Enhanced Model Accuracy:  {accuracy:.4f} ({accuracy*100:.2f}%)")
 
     improvement = ((accuracy - baseline_accuracy) / baseline_accuracy) * 100
     if improvement > 0:
         print(f"  Improvement:              +{improvement:.2f}%")
         print(
-            f"  Absolute Gain:            +{(accuracy - baseline_accuracy)*100:.2f} percentage points"
+            f"  Absolute Gain:            +{(accuracy - baseline_accuracy) * 100:.2f} percentage points"
         )
     else:
         print(f"  Change:                   {improvement:.2f}%")
@@ -622,9 +618,9 @@ print("✓ Enhanced model with macroeconomic features successfully trained!")
 print()
 print("Key Improvements:")
 print(f"  • Total Features: {len(FEATURES)} (vs 6 in baseline)")
-print(f"  • New Macro Features: VIX, DXY, yields, yield curve")
-print(f"  • Feature Scaling: StandardScaler applied")
-print(f"  • Model Capacity: Increased (150 estimators, depth 5)")
+print("  • New Macro Features: VIX, DXY, yields, yield curve")
+print("  • Feature Scaling: StandardScaler applied")
+print("  • Model Capacity: Increased (150 estimators, depth 5)")
 print()
 print("Deliverables:")
 print("  1. enhanced_multi_class_model.pkl")
@@ -637,8 +633,8 @@ print("  7. enhanced_feature_correlation.png (NEW)")
 print("  8. enhanced_test_predictions.csv")
 print("  9. model_comparison.png (if baseline available)")
 print()
-print(f"Enhanced Model Performance:")
-print(f"  Test Accuracy: {accuracy*100:.2f}%")
+print("Enhanced Model Performance:")
+print(f"  Test Accuracy: {accuracy * 100:.2f}%")
 print(f"  Test Set Size: {len(y_test)} events")
 print()
 print("=" * 70)
